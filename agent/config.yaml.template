@@ -1,0 +1,28 @@
+# Configuração do LabAgent
+# Este arquivo será criado automaticamente na primeira execução
+
+api:
+  # URL da API do Laravel (ajuste conforme seu ambiente)
+  url: http://localhost:8000/api/v1/agent
+  
+  # API Key (será solicitada na primeira execução)
+  key: ''
+
+laboratorio:
+  # ID do laboratório deste computador (será solicitado na primeira execução)
+  id: null
+
+coleta:
+  # Intervalo entre coletas em segundos (300 = 5 minutos)
+  intervalo_segundos: 300
+
+logging:
+  # Nível de log: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: INFO
+  
+  # Arquivo de log
+  arquivo: agent.log
+  
+  # Tamanho máximo do arquivo de log em MB
+  max_size_mb: 10
+

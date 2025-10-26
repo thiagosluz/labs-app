@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Laravel
+backend/vendor/
+backend/.env
+backend/storage/logs/
+backend/storage/framework/cache/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/.env*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+*.cache
+.env.local
+.env.*.local
+

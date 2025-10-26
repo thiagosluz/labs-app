@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Laravel
+backend/.env
+backend/storage/*.key
+backend/.phpunit.result.cache
+backend/Homestead.json
+backend/Homestead.yaml
+backend/npm-debug.log
+backend/yarn-error.log
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/.env*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+*.log
+
