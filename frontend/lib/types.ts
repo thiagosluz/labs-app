@@ -42,6 +42,9 @@ export interface Equipamento {
   anexos?: string[];
   softwares?: Software[];
   manutencoes?: Manutencao[];
+  qr_code_path?: string;
+  qr_code_url?: string;
+  public_url?: string;
   // Campos do agente
   hostname?: string;
   processador?: string;

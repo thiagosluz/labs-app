@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Edit, Trash2, Calendar, MapPin, Package, Wrench, HardDrive, Image as ImageIcon, Cpu, HardDriveIcon, MemoryStick, Network, Activity } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Calendar, MapPin, Package, Wrench, HardDrive, Image as ImageIcon, Cpu, HardDriveIcon, MemoryStick, Network, Activity, QrCode as QrCodeIcon, Download, Printer, RefreshCw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -33,6 +33,7 @@ export default function EquipamentoDetalhePage() {
   const [equipamento, setEquipamento] = useState<Equipamento | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPrintingLabel, setIsPrintingLabel] = useState(false);
 
   useEffect(() => {
     loadEquipamento();
@@ -100,6 +101,52 @@ export default function EquipamentoDetalhePage() {
     }
   };
 
+  const handleDownloadQrCode = () => {
+    if (!equipamento?.qr_code_url) return;
+    
+    const link = document.createElement('a');
+    link.href = equipamento.qr_code_url;
+    link.download = `qrcode_${equipamento.patrimonio || equipamento.id}.svg`;
+    link.click();
+  };
+
+  const handlePrintLabel = async () => {
+    setIsPrintingLabel(true);
+    try {
+      const xsrfToken = getXsrfToken();
+      const response = await api.get(`/equipamentos/${equipamento!.id}/etiqueta`, {
+        responseType: 'blob',
+        headers: {
+          ...(xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {}),
+        },
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `etiqueta_${equipamento!.patrimonio || equipamento!.id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      toast.success('Etiqueta gerada com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao gerar etiqueta');
+    } finally {
+      setIsPrintingLabel(false);
+    }
+  };
+
+  const handleRegenerateQrCode = async () => {
+    try {
+      await api.post(`/equipamentos/${equipamento!.id}/regenerate-qr`);
+      toast.success('QR Code regenerado!');
+      loadEquipamento();
+    } catch (error) {
+      toast.error('Erro ao regenerar QR Code');
+    }
+  };
+
   if (isLoading) {
     return <div className="flex items-center justify-center h-96">Carregando...</div>;
   }
@@ -160,6 +207,10 @@ export default function EquipamentoDetalhePage() {
           <TabsTrigger value="softwares">Softwares</TabsTrigger>
           <TabsTrigger value="manutencoes">Manutenções</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
+          <TabsTrigger value="qrcode">
+            <QrCodeIcon className="mr-2 h-4 w-4" />
+            QR Code
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="detalhes" className="space-y-6">
@@ -533,6 +584,75 @@ export default function EquipamentoDetalhePage() {
                 <p className="text-center text-muted-foreground py-8">
                   Nenhuma movimentação registrada
                 </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="qrcode">
+          <Card>
+            <CardHeader>
+              <CardTitle>QR Code do Equipamento</CardTitle>
+              <CardDescription>
+                Escaneie este código para acessar informações do equipamento
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {equipamento.qr_code_url ? (
+                <>
+                  <div className="flex justify-center p-6 bg-white rounded-lg border">
+                    <img 
+                      src={equipamento.qr_code_url} 
+                      alt="QR Code" 
+                      className="w-64 h-64"
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2 justify-center flex-wrap">
+                    <Button onClick={handleDownloadQrCode}>
+                      <Download className="mr-2 h-4 w-4" />
+                      Baixar QR Code
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={handlePrintLabel}
+                      disabled={isPrintingLabel}
+                    >
+                      {isPrintingLabel ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Gerando...
+                        </>
+                      ) : (
+                        <>
+                          <Printer className="mr-2 h-4 w-4" />
+                          Imprimir Etiqueta
+                        </>
+                      )}
+                    </Button>
+                    <Button variant="outline" onClick={handleRegenerateQrCode}>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Regenerar
+                    </Button>
+                  </div>
+                  
+                  <div className="bg-muted p-4 rounded-lg">
+                    <p className="text-sm font-medium mb-2">URL Pública:</p>
+                    <code className="text-xs bg-background p-2 rounded block break-all">
+                      {equipamento.public_url || `http://localhost:3000/equipamento/${equipamento.id}/public`}
+                    </code>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <QrCodeIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground mb-4">
+                    QR Code não disponível
+                  </p>
+                  <Button onClick={handleRegenerateQrCode}>
+                    Gerar QR Code
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>

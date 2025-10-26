@@ -8,6 +8,15 @@ use App\Models\User;
 class EquipamentoPolicy
 {
     /**
+     * Determine se o usuário pode visualizar o equipamento.
+     */
+    public function view(User $user, Equipamento $equipamento): bool
+    {
+        // Permitir visualização para todos os usuários autenticados
+        return true;
+    }
+
+    /**
      * Determine se o usuário pode criar equipamentos.
      */
     public function create(User $user): bool

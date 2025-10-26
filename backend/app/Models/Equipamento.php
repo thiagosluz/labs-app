@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Equipamento extends Model
 {
@@ -26,6 +27,7 @@ class Equipamento extends Model
         'especificacoes',
         'foto',
         'anexos',
+        'qr_code_path',
         // Campos do agente
         'hostname',
         'processador',
@@ -47,6 +49,11 @@ class Equipamento extends Model
         'dns_servers' => 'array',
         'gerenciado_por_agente' => 'boolean',
         'ultima_sincronizacao' => 'datetime',
+    ];
+
+    protected $appends = [
+        'qr_code_url',
+        'public_url',
     ];
 
     /**
@@ -82,5 +89,26 @@ class Equipamento extends Model
     {
         return $this->hasMany(HistoricoMovimentacao::class);
     }
+
+    /**
+     * Retorna a URL do QR code
+     */
+    public function getQrCodeUrlAttribute(): ?string
+    {
+        if (!$this->qr_code_path) {
+            return null;
+        }
+        
+        return Storage::disk('public')->url($this->qr_code_path);
+    }
+
+    /**
+     * Retorna a URL pública do equipamento
+     */
+    public function getPublicUrlAttribute(): string
+    {
+        return config('app.frontend_url', 'http://localhost:3000') . '/equipamento/' . $this->id . '/public';
+    }
 }
+
 

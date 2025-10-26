@@ -6,6 +6,15 @@ export function middleware(request: NextRequest) {
   const laravelSession = request.cookies.get('laravel-session')?.value;
   const isLoginPage = request.nextUrl.pathname === '/login';
   const isPublicPage = request.nextUrl.pathname === '/' || isLoginPage;
+  
+  // Permitir acesso público às páginas de equipamentos via QR code
+  const isEquipamentoPublic = request.nextUrl.pathname.startsWith('/equipamento/') && 
+                                request.nextUrl.pathname.endsWith('/public');
+
+  // Se é uma página pública de equipamento, permitir acesso
+  if (isEquipamentoPublic) {
+    return NextResponse.next();
+  }
 
   // Se não tem session e está tentando acessar página protegida
   if (!laravelSession && !isPublicPage) {

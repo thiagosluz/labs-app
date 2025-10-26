@@ -5,8 +5,10 @@ use App\Http\Controllers\Api\V1\AgentManagementController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\EquipamentoController;
+use App\Http\Controllers\Api\V1\EtiquetaController;
 use App\Http\Controllers\Api\V1\LaboratorioController;
 use App\Http\Controllers\Api\V1\ManutencaoController;
+use App\Http\Controllers\Api\V1\PublicEquipamentoController;
 use App\Http\Controllers\Api\V1\RelatorioController;
 use App\Http\Controllers\Api\V1\SoftwareController;
 use App\Http\Controllers\Api\V1\UserController;
@@ -21,6 +23,9 @@ use Illuminate\Support\Facades\Route;
 // Rotas públicas (sem autenticação)
 Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
+    
+    // Endpoint público para visualização de equipamentos via QR code
+    Route::get('/public/equipamentos/{equipamento}', [PublicEquipamentoController::class, 'show']);
 });
 
 // Rotas protegidas (com autenticação via sessão - SPA)
@@ -50,6 +55,11 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     Route::post('/equipamentos/{equipamento}/softwares', [EquipamentoController::class, 'attachSoftware']);
     Route::delete('/equipamentos/{equipamento}/softwares/{software}', [EquipamentoController::class, 'detachSoftware']);
     Route::post('/equipamentos/bulk-destroy', [EquipamentoController::class, 'bulkDestroy']);
+    Route::post('/equipamentos/{equipamento}/regenerate-qr', [EquipamentoController::class, 'regenerateQrCode']);
+    
+    // Etiquetas
+    Route::get('/equipamentos/{equipamento}/etiqueta', [EtiquetaController::class, 'single']);
+    Route::post('/equipamentos/etiquetas/bulk', [EtiquetaController::class, 'bulk']);
 
     // Softwares
     Route::apiResource('softwares', SoftwareController::class);

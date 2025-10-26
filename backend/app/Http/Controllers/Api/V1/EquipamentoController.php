@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Equipamento;
 use App\Models\HistoricoMovimentacao;
+use App\Services\QRCodeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -214,6 +215,29 @@ class EquipamentoController extends Controller
             DB::rollBack();
             return response()->json(['error' => 'Erro ao deletar equipamentos'], 500);
         }
+    }
+
+    /**
+     * Regenerar QR code do equipamento
+     */
+    public function regenerateQrCode(Equipamento $equipamento, QRCodeService $qrCodeService): JsonResponse
+    {
+        Gate::authorize('update', $equipamento);
+        
+        // Deletar QR code antigo
+        $qrCodeService->deleteQrCode($equipamento->qr_code_path);
+        
+        // Gerar novo
+        $path = $qrCodeService->generateForEquipamento($equipamento);
+        $equipamento->update(['qr_code_path' => $path]);
+        
+        // Recarregar para obter a URL
+        $equipamento->refresh();
+        
+        return response()->json([
+            'message' => 'QR Code regenerado com sucesso',
+            'qr_code_url' => $equipamento->qr_code_url,
+        ]);
     }
 }
 

@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Search, Edit, Eye, ChevronLeft, ChevronRight, Loader2, Trash2, Package } from 'lucide-react';
+import { Plus, Search, Edit, Eye, ChevronLeft, ChevronRight, Loader2, Trash2, Package, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -29,6 +29,7 @@ export default function EquipamentosPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+  const [isPrintingBulk, setIsPrintingBulk] = useState(false);
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
@@ -104,6 +105,31 @@ export default function EquipamentosPage() {
     }
   };
 
+  const handlePrintBulkLabels = async () => {
+    setIsPrintingBulk(true);
+    try {
+      const response = await api.post('/equipamentos/etiquetas/bulk', {
+        ids: selectedIds,
+      }, {
+        responseType: 'blob',
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `etiquetas_${selectedIds.length}_equipamentos.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      toast.success(`${selectedIds.length} etiquetas geradas!`);
+    } catch (error) {
+      toast.error('Erro ao gerar etiquetas');
+    } finally {
+      setIsPrintingBulk(false);
+    }
+  };
+
   const getEstadoBadge = (estado: string) => {
     const variants: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline', label: string }> = {
       em_uso: { variant: 'default', label: 'Em Uso' },
@@ -154,14 +180,44 @@ export default function EquipamentosPage() {
           />
         </div>
         {selectedIds.length > 0 && (
-          <Button
-            variant="destructive"
-            onClick={() => setShowBulkDeleteDialog(true)}
-            className="flex items-center gap-2"
-          >
-            <Trash2 className="h-4 w-4" />
-            Deletar Selecionados ({selectedIds.length})
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              onClick={handlePrintBulkLabels}
+              className="flex items-center gap-2"
+              disabled={isPrintingBulk}
+            >
+              {isPrintingBulk ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Gerando PDF...
+                </>
+              ) : (
+                <>
+                  <Printer className="h-4 w-4" />
+                  Imprimir Etiquetas ({selectedIds.length})
+                </>
+              )}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => setShowBulkDeleteDialog(true)}
+              className="flex items-center gap-2"
+              disabled={isDeletingBulk}
+            >
+              {isDeletingBulk ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Deletando...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Deletar Selecionados ({selectedIds.length})
+                </>
+              )}
+            </Button>
+          </>
         )}
       </div>
 
