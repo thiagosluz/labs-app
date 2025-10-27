@@ -56,6 +56,21 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async () => {
+        // Limpar estado local primeiro
+        localStorage.removeItem('user');
+        localStorage.removeItem('auth-storage');
+        set({ user: null, isAuthenticated: false });
+        
+        // Limpar cookies do navegador ANTES do redirecionamento
+        if (typeof document !== 'undefined') {
+          // Limpar todos os cookies relacionados à sessão
+          document.cookie = 'laravel_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost';
+          document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost';
+          document.cookie = 'laravel_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+          document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+        }
+        
+        // Tentar fazer logout no backend (sem bloquear se falhar)
         try {
           const xsrfToken = getXsrfToken();
           if (xsrfToken) {
@@ -66,10 +81,8 @@ export const useAuthStore = create<AuthState>()(
             });
           }
         } catch (error) {
-          // Ignorar erros no logout
-        } finally {
-          localStorage.removeItem('user');
-          set({ user: null, isAuthenticated: false });
+          // Ignorar erros no logout do backend
+          console.log('Erro ao fazer logout no backend (ignorado)', error);
         }
       },
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\ActivityLogController;
 use App\Http\Controllers\Api\V1\AgentController;
 use App\Http\Controllers\Api\V1\AgentManagementController;
 use App\Http\Controllers\Api\V1\AuthController;
@@ -25,6 +26,7 @@ use Illuminate\Support\Facades\Route;
 // Rotas públicas (sem autenticação)
 Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/logout', [AuthController::class, 'logout']);
     
     // Endpoint público para visualização de equipamentos via QR code
     Route::get('/public/equipamentos/{equipamento}', [PublicEquipamentoController::class, 'show']);
@@ -34,7 +36,6 @@ Route::prefix('v1')->group(function () {
 Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     
     // Auth
-    Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
 
@@ -44,9 +45,20 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/relatorios/softwares-por-laboratorio', [DashboardController::class, 'relatorioSoftwaresPorLaboratorio']);
     Route::get('/relatorios/manutencoes/{dataInicio}/{dataFim}', [DashboardController::class, 'relatorioManutencoesPorPeriodo']);
 
-    // Usuários
+    // Usuários (CRUD para Admin)
     Route::get('users', [UserController::class, 'index']);
+    Route::post('users', [UserController::class, 'store']);
     Route::get('users/{user}', [UserController::class, 'show']);
+    Route::put('users/{user}', [UserController::class, 'update']);
+    Route::delete('users/{user}', [UserController::class, 'destroy']);
+    Route::post('users/{user}/toggle-status', [UserController::class, 'toggleStatus']);
+    Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword']);
+    Route::put('users/{user}/permissions', [UserController::class, 'updatePermissions']);
+    
+    // Activity Logs (Admin)
+    Route::get('activity-logs', [ActivityLogController::class, 'index']);
+    Route::get('activity-logs/{activityLog}', [ActivityLogController::class, 'show']);
+    Route::get('users/{user}/activities', [ActivityLogController::class, 'userActivities']);
 
     // Laboratórios
     Route::apiResource('laboratorios', LaboratorioController::class);

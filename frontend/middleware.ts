@@ -16,14 +16,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // SEMPRE permitir acesso à página de login (para logout funcionar corretamente)
+  if (isLoginPage) {
+    return NextResponse.next();
+  }
+
   // Se não tem session e está tentando acessar página protegida
   if (!laravelSession && !isPublicPage) {
     return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // Se tem session e está na página de login, redirecionar para dashboard
-  if (laravelSession && isLoginPage) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return NextResponse.next();

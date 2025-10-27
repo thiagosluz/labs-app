@@ -14,11 +14,18 @@ export function Navbar() {
 
   const handleLogout = async () => {
     try {
+      // Fazer logout completo
       await logout();
-      toast.success('Logout realizado com sucesso!');
-      router.push('/login');
+      
+      // Aguardar um momento para garantir que tudo foi limpo
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Redirecionar para login
+      window.location.href = '/login';
     } catch (error) {
-      toast.error('Erro ao fazer logout');
+      console.error('Erro no logout:', error);
+      // Forçar redirecionamento mesmo com erro
+      window.location.href = '/login';
     }
   };
 

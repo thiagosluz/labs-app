@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, HardDrive, MonitorSmartphone, Package, Wrench, FileText, ChevronLeft, Bot, Settings, ClipboardType } from 'lucide-react';
+import { LayoutDashboard, HardDrive, MonitorSmartphone, Package, Wrench, FileText, ChevronLeft, Bot, Settings, ClipboardType, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import { useState } from 'react';
 
@@ -16,6 +16,7 @@ const menuItems = [
   { icon: Bot, label: 'Agentes', href: '/agentes' },
   { icon: FileText, label: 'Relatórios', href: '/relatorios' },
   { icon: ClipboardType, label: 'Templates Etiquetas', href: '/templates-etiquetas' },
+  { icon: Users, label: 'Usuários', href: '/usuarios' },
   { icon: Settings, label: 'Configurações', href: '/configuracoes' },
 ];
 

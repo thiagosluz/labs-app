@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'role',
         'active',
+        'permissions',
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'active' => 'boolean',
+            'permissions' => 'array',
         ];
     }
 
@@ -105,5 +107,97 @@ class User extends Authenticatable
     public function isVisualizador(): bool
     {
         return $this->role === 'visualizador';
+    }
+
+    /**
+     * Verifica se o usuário tem uma permissão específica
+     */
+    public function hasPermission(string $permission): bool
+    {
+        // Admin tem todas as permissões
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        // Verificar permissões customizadas do usuário
+        if ($this->permissions && is_array($this->permissions)) {
+            return in_array($permission, $this->permissions);
+        }
+
+        // Retornar false se não tiver permissão customizada
+        return false;
+    }
+
+    /**
+     * Concede uma permissão ao usuário
+     */
+    public function grantPermission(string $permission): void
+    {
+        $permissions = $this->permissions ?? [];
+        if (!in_array($permission, $permissions)) {
+            $permissions[] = $permission;
+            $this->permissions = $permissions;
+            $this->save();
+        }
+    }
+
+    /**
+     * Revoga uma permissão do usuário
+     */
+    public function revokePermission(string $permission): void
+    {
+        $permissions = $this->permissions ?? [];
+        $this->permissions = array_values(array_diff($permissions, [$permission]));
+        $this->save();
+    }
+
+    /**
+     * Retorna todas as permissões do usuário (incluindo padrões do role)
+     */
+    public function getAllPermissions(): array
+    {
+        // Admin tem todas as permissões
+        if ($this->isAdmin()) {
+            return [
+                'laboratorios.view', 'laboratorios.create', 'laboratorios.edit', 'laboratorios.delete',
+                'equipamentos.view', 'equipamentos.create', 'equipamentos.edit', 'equipamentos.delete',
+                'softwares.view', 'softwares.create', 'softwares.edit', 'softwares.delete',
+                'manutencoes.view', 'manutencoes.create', 'manutencoes.edit', 'manutencoes.delete',
+                'usuarios.view', 'usuarios.create', 'usuarios.edit', 'usuarios.delete',
+                'relatorios.view', 'relatorios.export',
+                'configuracoes.view', 'configuracoes.edit',
+                'templates.view', 'templates.create', 'templates.edit', 'templates.delete',
+            ];
+        }
+
+        // Retornar permissões customizadas ou padrões do role
+        return $this->permissions ?? $this->getDefaultPermissionsForRole();
+    }
+
+    /**
+     * Retorna permissões padrão para o role do usuário
+     */
+    protected function getDefaultPermissionsForRole(): array
+    {
+        return match($this->role) {
+            'tecnico' => [
+                'laboratorios.view', 'laboratorios.create', 'laboratorios.edit',
+                'equipamentos.view', 'equipamentos.create', 'equipamentos.edit',
+                'softwares.view', 'softwares.create', 'softwares.edit',
+                'manutencoes.view', 'manutencoes.create', 'manutencoes.edit',
+                'usuarios.view',
+                'relatorios.view', 'relatorios.export',
+                'templates.view', 'templates.create', 'templates.edit',
+            ],
+            'visualizador' => [
+                'laboratorios.view',
+                'equipamentos.view',
+                'softwares.view',
+                'manutencoes.view',
+                'relatorios.view',
+                'templates.view',
+            ],
+            default => [],
+        };
     }
 }

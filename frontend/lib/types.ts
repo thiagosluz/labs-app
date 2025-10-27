@@ -3,7 +3,23 @@ export interface User {
   name: string;
   email: string;
   role: 'admin' | 'tecnico' | 'visualizador';
+  permissions?: string[];
   active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActivityLog {
+  id: number;
+  user_id: number;
+  user?: User;
+  action: string;
+  model_type: string;
+  model_id: number;
+  old_values?: any;
+  new_values?: any;
+  ip_address?: string;
+  user_agent?: string;
   created_at: string;
   updated_at: string;
 }

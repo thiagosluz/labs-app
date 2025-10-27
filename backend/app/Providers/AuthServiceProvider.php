@@ -8,12 +8,14 @@ use App\Models\Laboratorio;
 use App\Models\Manutencao;
 use App\Models\Software;
 use App\Models\SystemSetting;
+use App\Models\User;
 use App\Policies\EquipamentoPolicy;
 use App\Policies\LabelTemplatePolicy;
 use App\Policies\LaboratorioPolicy;
 use App\Policies\ManutencaoPolicy;
 use App\Policies\SoftwarePolicy;
 use App\Policies\SystemSettingPolicy;
+use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -24,6 +26,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
+        User::class => UserPolicy::class,
         Laboratorio::class => LaboratorioPolicy::class,
         Equipamento::class => EquipamentoPolicy::class,
         Software::class => SoftwarePolicy::class,
