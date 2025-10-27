@@ -45,10 +45,10 @@
             width: auto;
         }
         .logo {
-            font-size: {{ ($template->styles['font_size_name'] ?? 10) - 2 }}px;
+            font-size: {{ ($template->styles['font_size_name'] ?? 10) }}px;
             color: {{ $template->styles['header_color'] ?? '#22c55e' }};
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
         .nome {
             font-size: {{ $template->styles['font_size_name'] ?? 12 }}px;

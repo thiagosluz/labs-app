@@ -23,7 +23,7 @@
                 }
             @endphp
             @if(isset($logoBase64))
-                <img src="{{ $logoBase64 }}" alt="Logo" style="max-height: 20px; margin-bottom: 5px;">
+                <img src="{{ $logoBase64 }}" alt="Logo" style="max-height: 60px; margin-bottom: 8px;">
             @else
                 <div class="logo">IFG - CÂMPUS JATAÍ</div>
             @endif
