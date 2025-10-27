@@ -46,14 +46,22 @@
             margin-bottom: 5px;
         }
         .nome {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             margin-bottom: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-height: 20px;
         }
         .detalhe {
-            font-size: 9px;
+            font-size: 8px;
             color: #666;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            line-height: 1.2;
         }
         .detalhe strong {
             color: #333;

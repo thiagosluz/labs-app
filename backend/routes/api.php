@@ -6,11 +6,13 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\EquipamentoController;
 use App\Http\Controllers\Api\V1\EtiquetaController;
+use App\Http\Controllers\Api\V1\LabelTemplateController;
 use App\Http\Controllers\Api\V1\LaboratorioController;
 use App\Http\Controllers\Api\V1\ManutencaoController;
 use App\Http\Controllers\Api\V1\PublicEquipamentoController;
 use App\Http\Controllers\Api\V1\RelatorioController;
 use App\Http\Controllers\Api\V1\SoftwareController;
+use App\Http\Controllers\Api\V1\SystemSettingsController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -88,6 +90,19 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     Route::post('/agent-management/{agentKey}/reactivate', [AgentManagementController::class, 'reactivate']);
     Route::post('/agent-management/bulk-destroy', [AgentManagementController::class, 'bulkDestroy']);
     Route::get('/agent-management/download', [AgentManagementController::class, 'downloadAgent']);
+    
+    // Configurações do Sistema (Admin)
+    Route::get('/system-settings', [SystemSettingsController::class, 'index']);
+    Route::post('/system-settings', [SystemSettingsController::class, 'update']);
+    Route::post('/system-settings/upload-logo', [SystemSettingsController::class, 'uploadLogo']);
+    
+    // Templates de Etiquetas (Admin/Tecnico)
+    Route::get('/label-templates', [LabelTemplateController::class, 'index']);
+    Route::post('/label-templates', [LabelTemplateController::class, 'store']);
+    Route::put('/label-templates/{labelTemplate}', [LabelTemplateController::class, 'update']);
+    Route::delete('/label-templates/{labelTemplate}', [LabelTemplateController::class, 'destroy']);
+    Route::post('/label-templates/{labelTemplate}/duplicate', [LabelTemplateController::class, 'duplicate']);
+    Route::post('/label-templates/{labelTemplate}/set-default', [LabelTemplateController::class, 'setDefault']);
 });
 
 // Rotas do Agente (autenticação via API Key)
