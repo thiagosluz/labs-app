@@ -26,14 +26,14 @@ mkdir -p $BACKUP_DIR
 # Function to check if containers are running
 check_containers() {
     echo -e "${BLUE}📋 Checking container status...${NC}"
-    docker compose -f docker compose.prod.yml ps
+    docker compose -f docker-compose.prod.yml ps
 }
 
 # Function to backup database
 backup_database() {
     echo -e "${BLUE}💾 Creating database backup...${NC}"
-    if docker compose -f docker compose.prod.yml ps postgres | grep -q "Up"; then
-        docker compose -f docker compose.prod.yml exec -T postgres pg_dump -U labs_user labs_app > "${BACKUP_DIR}/backup_${TIMESTAMP}.sql"
+    if docker compose -f docker-compose.prod.yml ps postgres | grep -q "Up"; then
+        docker compose -f docker-compose.prod.yml exec -T postgres pg_dump -U labs_user labs_app > "${BACKUP_DIR}/backup_${TIMESTAMP}.sql"
         echo -e "${GREEN}✅ Database backup created: backup_${TIMESTAMP}.sql${NC}"
     else
         echo -e "${YELLOW}⚠️  PostgreSQL container not running, skipping backup${NC}"
@@ -43,7 +43,7 @@ backup_database() {
 # Function to stop old containers
 stop_containers() {
     echo -e "${BLUE}🛑 Stopping old containers...${NC}"
-    docker compose -f docker compose.prod.yml down
+    docker compose -f docker-compose.prod.yml down
 }
 
 # Function to build and start containers
@@ -55,7 +55,7 @@ start_containers() {
     sed -i "s/localhost/${SERVER_IP}/g" frontend/.env.production
     
     # Build and start
-    docker compose -f docker compose.prod.yml up -d --build
+    docker compose -f docker-compose.prod.yml up -d --build
     
     echo -e "${GREEN}✅ Containers started successfully${NC}"
 }
@@ -69,7 +69,7 @@ run_migrations() {
     sleep 10
     
     # Run migrations
-    docker compose -f docker compose.prod.yml exec backend php artisan migrate --force
+    docker compose -f docker-compose.prod.yml exec backend php artisan migrate --force
     
     echo -e "${GREEN}✅ Migrations completed${NC}"
 }
@@ -79,11 +79,11 @@ seed_database() {
     echo -e "${BLUE}🌱 Checking if database needs seeding...${NC}"
     
     # Check if users table is empty
-    USER_COUNT=$(docker compose -f docker compose.prod.yml exec -T backend php artisan tinker --execute="echo App\Models\User::count();" 2>/dev/null || echo "0")
+    USER_COUNT=$(docker compose -f docker-compose.prod.yml exec -T backend php artisan tinker --execute="echo App\Models\User::count();" 2>/dev/null || echo "0")
     
     if [ "$USER_COUNT" -eq "0" ]; then
         echo -e "${YELLOW}📊 Database is empty, running seeders...${NC}"
-        docker compose -f docker compose.prod.yml exec backend php artisan db:seed --force
+        docker compose -f docker-compose.prod.yml exec backend php artisan db:seed --force
         echo -e "${GREEN}✅ Database seeded successfully${NC}"
     else
         echo -e "${GREEN}✅ Database already has data, skipping seeding${NC}"
@@ -93,16 +93,16 @@ seed_database() {
 # Function to generate application key
 generate_app_key() {
     echo -e "${BLUE}🔑 Generating application key...${NC}"
-    docker compose -f docker compose.prod.yml exec backend php artisan key:generate --force
+    docker compose -f docker-compose.prod.yml exec backend php artisan key:generate --force
     echo -e "${GREEN}✅ Application key generated${NC}"
 }
 
 # Function to optimize application
 optimize_application() {
     echo -e "${BLUE}⚡ Optimizing application...${NC}"
-    docker compose -f docker compose.prod.yml exec backend php artisan config:cache
-    docker compose -f docker compose.prod.yml exec backend php artisan route:cache
-    docker compose -f docker compose.prod.yml exec backend php artisan view:cache
+    docker compose -f docker-compose.prod.yml exec backend php artisan config:cache
+    docker compose -f docker-compose.prod.yml exec backend php artisan route:cache
+    docker compose -f docker-compose.prod.yml exec backend php artisan view:cache
     echo -e "${GREEN}✅ Application optimized${NC}"
 }
 
@@ -141,7 +141,7 @@ show_status() {
     echo -e "${GREEN}================================${NC}"
     
     echo -e "${BLUE}📋 Container Status:${NC}"
-    docker compose -f docker compose.prod.yml ps
+    docker compose -f docker-compose.prod.yml ps
     
     echo -e "${BLUE}💾 Backup Location: ${BACKUP_DIR}/${NC}"
     ls -la ${BACKUP_DIR}/
@@ -158,8 +158,8 @@ main() {
     fi
     
     # Check if docker compose.prod.yml exists
-    if [ ! -f "docker compose.prod.yml" ]; then
-        echo -e "${RED}❌ docker compose.prod.yml not found. Please run this script from the project root.${NC}"
+    if [ ! -f "docker-compose.prod.yml" ]; then
+        echo -e "${RED}❌ docker-compose.prod.yml not found. Please run this script from the project root.${NC}"
         exit 1
     fi
     
