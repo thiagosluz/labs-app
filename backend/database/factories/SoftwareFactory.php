@@ -27,17 +27,17 @@ class SoftwareFactory extends Factory
             ['nome' => 'MySQL', 'fabricante' => 'Oracle', 'tipo_licenca' => 'livre'],
         ];
 
-        $software = fake()->randomElement($softwares);
+        $software = $this->faker->randomElement($softwares);
         $tipoLicenca = $software['tipo_licenca'];
 
         return [
             'nome' => $software['nome'],
-            'versao' => fake()->numerify('#.#.#'),
+            'versao' => $this->faker->numerify('#.#.#'),
             'fabricante' => $software['fabricante'],
             'tipo_licenca' => $tipoLicenca,
-            'quantidade_licencas' => $tipoLicenca !== 'livre' ? fake()->numberBetween(10, 100) : null,
-            'data_expiracao' => $tipoLicenca === 'proprietario' ? fake()->dateTimeBetween('now', '+2 years') : null,
-            'descricao' => fake()->sentence(),
+            'quantidade_licencas' => $tipoLicenca !== 'livre' ? $this->faker->numberBetween(10, 100) : null,
+            'data_expiracao' => $tipoLicenca === 'proprietario' ? $this->faker->dateTimeBetween('now', '+2 years') : null,
+            'descricao' => $this->faker->sentence(),
         ];
     }
 }

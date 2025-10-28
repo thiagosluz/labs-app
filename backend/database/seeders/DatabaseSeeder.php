@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Criar usuários específicos
-        $admin = \App\Models\User::factory()->create([
+        $admin = User::create([
             'name' => 'Administrador',
             'email' => 'admin@ifg.edu.br',
             'password' => bcrypt('password'),
@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             'active' => true,
         ]);
 
-        $tecnico = \App\Models\User::factory()->create([
+        $tecnico = User::create([
             'name' => 'João Silva - Técnico',
             'email' => 'tecnico@ifg.edu.br',
             'password' => bcrypt('password'),
@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
             'active' => true,
         ]);
 
-        $visualizador = \App\Models\User::factory()->create([
+        $visualizador = User::create([
             'name' => 'Maria Santos - Professora',
             'email' => 'professor@ifg.edu.br',
             'password' => bcrypt('password'),
@@ -41,7 +41,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Criar laboratórios
-        $lab1 = \App\Models\Laboratorio::factory()->create([
+        $lab1 = \App\Models\Laboratorio::create([
             'nome' => 'Laboratório de Informática 1',
             'localizacao' => 'Bloco A - Sala 101',
             'responsavel_id' => $tecnico->id,
@@ -50,7 +50,7 @@ class DatabaseSeeder extends Seeder
             'descricao' => 'Laboratório principal com 30 computadores',
         ]);
 
-        $lab2 = \App\Models\Laboratorio::factory()->create([
+        $lab2 = \App\Models\Laboratorio::create([
             'nome' => 'Laboratório de Redes',
             'localizacao' => 'Bloco B - Sala 205',
             'responsavel_id' => $tecnico->id,
@@ -70,7 +70,7 @@ class DatabaseSeeder extends Seeder
 
         $softwareModels = [];
         foreach ($softwares as $softwareData) {
-            $softwareModels[] = \App\Models\Software::factory()->create($softwareData);
+            $softwareModels[] = \App\Models\Software::create($softwareData);
         }
 
         // Associar softwares aos laboratórios
@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
 
         // Criar equipamentos para o Lab 1
         for ($i = 1; $i <= 10; $i++) {
-            $equipamento = \App\Models\Equipamento::factory()->create([
+            $equipamento = \App\Models\Equipamento::create([
                 'nome' => "Desktop Lab1-PC{$i}",
                 'tipo' => 'computador',
                 'fabricante' => 'Dell',
@@ -101,7 +101,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // Criar alguns equipamentos adicionais
-        \App\Models\Equipamento::factory()->create([
+        \App\Models\Equipamento::create([
             'nome' => 'Projetor Epson PowerLite',
             'tipo' => 'projetor',
             'fabricante' => 'Epson',
@@ -112,7 +112,7 @@ class DatabaseSeeder extends Seeder
             'laboratorio_id' => $lab1->id,
         ]);
 
-        \App\Models\Equipamento::factory()->create([
+        \App\Models\Equipamento::create([
             'nome' => 'Switch Cisco 24 Portas',
             'tipo' => 'switch',
             'fabricante' => 'Cisco',
@@ -127,7 +127,7 @@ class DatabaseSeeder extends Seeder
         $equipamentos = \App\Models\Equipamento::where('tipo', 'computador')->take(3)->get();
         
         foreach ($equipamentos as $equipamento) {
-            \App\Models\Manutencao::factory()->create([
+            \App\Models\Manutencao::create([
                 'equipamento_id' => $equipamento->id,
                 'data' => now()->subDays(rand(10, 60)),
                 'tipo' => 'preventiva',

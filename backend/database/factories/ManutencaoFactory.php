@@ -20,11 +20,11 @@ class ManutencaoFactory extends Factory
     {
         return [
             'equipamento_id' => Equipamento::factory(),
-            'data' => fake()->dateTimeBetween('-1 year', '+30 days'),
-            'tipo' => fake()->randomElement(['corretiva', 'preventiva']),
-            'descricao' => fake()->sentence(),
-            'tecnico_id' => User::factory()->create(['role' => 'tecnico']),
-            'status' => fake()->randomElement(['pendente', 'em_andamento', 'concluida', 'cancelada']),
+            'data' => $this->faker->dateTimeBetween('-1 year', '+30 days'),
+            'tipo' => $this->faker->randomElement(['corretiva', 'preventiva']),
+            'descricao' => $this->faker->sentence(),
+            'tecnico_id' => User::factory(),
+            'status' => $this->faker->randomElement(['pendente', 'em_andamento', 'concluida', 'cancelada']),
         ];
     }
 }

@@ -17,31 +17,31 @@ class EquipamentoFactory extends Factory
      */
     public function definition(): array
     {
-        $tipo = fake()->randomElement(['computador', 'projetor', 'roteador', 'switch', 'impressora']);
+        $tipo = $this->faker->randomElement(['computador', 'projetor', 'roteador', 'switch', 'impressora']);
         
         return [
             'nome' => $this->getNomePorTipo($tipo),
             'tipo' => $tipo,
-            'fabricante' => fake()->randomElement(['Dell', 'HP', 'Lenovo', 'Epson', 'TP-Link', 'Cisco']),
-            'modelo' => fake()->bothify('??-####'),
-            'numero_serie' => fake()->unique()->bothify('SN-########'),
-            'patrimonio' => fake()->unique()->numerify('PAT-######'),
-            'data_aquisicao' => fake()->dateTimeBetween('-5 years', 'now'),
-            'estado' => fake()->randomElement(['em_uso', 'reserva', 'manutencao', 'descartado']),
+            'fabricante' => $this->faker->randomElement(['Dell', 'HP', 'Lenovo', 'Epson', 'TP-Link', 'Cisco']),
+            'modelo' => $this->faker->bothify('??-####'),
+            'numero_serie' => $this->faker->unique()->bothify('SN-########'),
+            'patrimonio' => $this->faker->unique()->numerify('PAT-######'),
+            'data_aquisicao' => $this->faker->dateTimeBetween('-5 years', 'now'),
+            'estado' => $this->faker->randomElement(['em_uso', 'reserva', 'manutencao', 'descartado']),
             'laboratorio_id' => Laboratorio::factory(),
-            'especificacoes' => fake()->sentence(),
+            'especificacoes' => $this->faker->sentence(),
         ];
     }
 
     private function getNomePorTipo(string $tipo): string
     {
         return match($tipo) {
-            'computador' => 'Desktop ' . fake()->bothify('PC-###'),
-            'projetor' => 'Projetor ' . fake()->bothify('PRJ-###'),
-            'roteador' => 'Roteador ' . fake()->bothify('RT-###'),
-            'switch' => 'Switch ' . fake()->bothify('SW-###'),
-            'impressora' => 'Impressora ' . fake()->bothify('IMP-###'),
-            default => 'Equipamento ' . fake()->bothify('EQ-###'),
+            'computador' => 'Desktop ' . $this->faker->bothify('PC-###'),
+            'projetor' => 'Projetor ' . $this->faker->bothify('PRJ-###'),
+            'roteador' => 'Roteador ' . $this->faker->bothify('RT-###'),
+            'switch' => 'Switch ' . $this->faker->bothify('SW-###'),
+            'impressora' => 'Impressora ' . $this->faker->bothify('IMP-###'),
+            default => 'Equipamento ' . $this->faker->bothify('EQ-###'),
         };
     }
 }

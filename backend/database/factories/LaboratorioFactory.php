@@ -18,12 +18,12 @@ class LaboratorioFactory extends Factory
     public function definition(): array
     {
         return [
-            'nome' => 'Laboratório ' . fake()->numberBetween(1, 20),
-            'localizacao' => fake()->randomElement(['Bloco A - Sala 101', 'Bloco B - Sala 205', 'Bloco C - Sala 308', 'Bloco D - Sala 102']),
+            'nome' => 'Laboratório ' . $this->faker->numberBetween(1, 20),
+            'localizacao' => $this->faker->randomElement(['Bloco A - Sala 101', 'Bloco B - Sala 205', 'Bloco C - Sala 308', 'Bloco D - Sala 102']),
             'responsavel_id' => User::factory(),
-            'quantidade_maquinas' => fake()->numberBetween(15, 40),
-            'status' => fake()->randomElement(['ativo', 'inativo', 'manutencao']),
-            'descricao' => fake()->sentence(),
+            'quantidade_maquinas' => $this->faker->numberBetween(15, 40),
+            'status' => $this->faker->randomElement(['ativo', 'inativo', 'manutencao']),
+            'descricao' => $this->faker->sentence(),
         ];
     }
 }
