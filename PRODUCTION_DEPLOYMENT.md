@@ -20,7 +20,7 @@ Este guia fornece instruções passo a passo para implantar o sistema Parque Tec
 
 ### Software Necessário
 - Docker 20.10+
-- Docker Compose 2.0+
+- Docker Compose 2.0+ (integrado ao Docker CLI)
 - Git
 - Curl (para testes)
 
@@ -220,10 +220,10 @@ chmod +x deploy.sh
 ### 4. Verificar Implantação
 ```bash
 # Verificar status dos containers
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml ps
 
 # Verificar logs
-docker-compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.prod.yml logs -f
 
 # Testar endpoints
 curl http://192.168.1.100/health
@@ -263,39 +263,39 @@ Após o deploy, o sistema é populado com usuários de exemplo:
 ### Controle de Containers
 ```bash
 # Iniciar todos os serviços
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 
 # Parar todos os serviços
-docker-compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml down
 
 # Reiniciar um serviço específico
-docker-compose -f docker-compose.prod.yml restart backend
+docker compose -f docker-compose.prod.yml restart backend
 
 # Ver logs em tempo real
-docker-compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.prod.yml logs -f
 
 # Ver logs de um serviço específico
-docker-compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.prod.yml logs -f backend
 ```
 
 ### Comandos Laravel
 ```bash
 # Executar migrations
-docker-compose -f docker-compose.prod.yml exec backend php artisan migrate
+docker compose -f docker-compose.prod.yml exec backend php artisan migrate
 
 # Executar seeders
-docker-compose -f docker-compose.prod.yml exec backend php artisan db:seed
+docker compose -f docker-compose.prod.yml exec backend php artisan db:seed
 
 # Limpar cache
-docker-compose -f docker-compose.prod.yml exec backend php artisan cache:clear
-docker-compose -f docker-compose.prod.yml exec backend php artisan config:clear
-docker-compose -f docker-compose.prod.yml exec backend php artisan route:clear
-docker-compose -f docker-compose.prod.yml exec backend php artisan view:clear
+docker compose -f docker-compose.prod.yml exec backend php artisan cache:clear
+docker compose -f docker-compose.prod.yml exec backend php artisan config:clear
+docker compose -f docker-compose.prod.yml exec backend php artisan route:clear
+docker compose -f docker-compose.prod.yml exec backend php artisan view:clear
 
 # Otimizar aplicação
-docker-compose -f docker-compose.prod.yml exec backend php artisan config:cache
-docker-compose -f docker-compose.prod.yml exec backend php artisan route:cache
-docker-compose -f docker-compose.prod.yml exec backend php artisan view:cache
+docker compose -f docker-compose.prod.yml exec backend php artisan config:cache
+docker compose -f docker-compose.prod.yml exec backend php artisan route:cache
+docker compose -f docker-compose.prod.yml exec backend php artisan view:cache
 ```
 
 ### Backup e Restore
@@ -318,7 +318,7 @@ docker-compose -f docker-compose.prod.yml exec backend php artisan view:cache
 ./health-check.sh 192.168.1.100
 
 # Verificar status dos containers
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml ps
 
 # Verificar uso de recursos
 docker stats
@@ -327,16 +327,16 @@ docker stats
 ### Logs do Sistema
 ```bash
 # Logs do Nginx
-docker-compose -f docker-compose.prod.yml logs nginx
+docker compose -f docker-compose.prod.yml logs nginx
 
 # Logs do Backend
-docker-compose -f docker-compose.prod.yml logs backend
+docker compose -f docker-compose.prod.yml logs backend
 
 # Logs do Frontend
-docker-compose -f docker-compose.prod.yml logs frontend
+docker compose -f docker-compose.prod.yml logs frontend
 
 # Logs do PostgreSQL
-docker-compose -f docker-compose.prod.yml logs postgres
+docker compose -f docker-compose.prod.yml logs postgres
 ```
 
 ### Métricas de Performance
@@ -365,20 +365,20 @@ ps aux | grep docker
 git pull origin main
 
 # Rebuild e restart
-docker-compose -f docker-compose.prod.yml down
-docker-compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml up -d --build
 
 # Executar migrations se necessário
-docker-compose -f docker-compose.prod.yml exec backend php artisan migrate
+docker compose -f docker-compose.prod.yml exec backend php artisan migrate
 ```
 
 ### Atualizar Dependências
 ```bash
 # Atualizar dependências do backend
-docker-compose -f docker-compose.prod.yml exec backend composer update
+docker compose -f docker-compose.prod.yml exec backend composer update
 
 # Atualizar dependências do frontend
-docker-compose -f docker-compose.prod.yml exec frontend npm update
+docker compose -f docker-compose.prod.yml exec frontend npm update
 ```
 
 ## 🚨 Troubleshooting
@@ -388,7 +388,7 @@ docker-compose -f docker-compose.prod.yml exec frontend npm update
 #### 1. Containers não iniciam
 ```bash
 # Verificar logs
-docker-compose -f docker-compose.prod.yml logs
+docker compose -f docker-compose.prod.yml logs
 
 # Verificar espaço em disco
 df -h
@@ -403,29 +403,29 @@ sudo systemctl restart docker
 #### 2. Erro de permissão
 ```bash
 # Corrigir permissões do Laravel
-docker-compose -f docker-compose.prod.yml exec backend chown -R www-data:www-data /var/www/storage
-docker-compose -f docker-compose.prod.yml exec backend chmod -R 775 /var/www/storage
+docker compose -f docker-compose.prod.yml exec backend chown -R www-data:www-data /var/www/storage
+docker compose -f docker-compose.prod.yml exec backend chmod -R 775 /var/www/storage
 ```
 
 #### 3. Banco de dados não conecta
 ```bash
 # Verificar se PostgreSQL está rodando
-docker-compose -f docker-compose.prod.yml ps postgres
+docker compose -f docker-compose.prod.yml ps postgres
 
 # Verificar logs do PostgreSQL
-docker-compose -f docker-compose.prod.yml logs postgres
+docker compose -f docker-compose.prod.yml logs postgres
 
 # Testar conexão
-docker-compose -f docker-compose.prod.yml exec postgres pg_isready -U labs_user
+docker compose -f docker-compose.prod.yml exec postgres pg_isready -U labs_user
 ```
 
 #### 4. API não responde
 ```bash
 # Verificar se backend está rodando
-docker-compose -f docker-compose.prod.yml ps backend
+docker compose -f docker-compose.prod.yml ps backend
 
 # Verificar logs do backend
-docker-compose -f docker-compose.prod.yml logs backend
+docker compose -f docker-compose.prod.yml logs backend
 
 # Testar endpoint diretamente
 curl http://192.168.1.100/api/v1/dashboard
@@ -434,10 +434,10 @@ curl http://192.168.1.100/api/v1/dashboard
 #### 5. Frontend não carrega
 ```bash
 # Verificar se frontend está rodando
-docker-compose -f docker-compose.prod.yml ps frontend
+docker compose -f docker-compose.prod.yml ps frontend
 
 # Verificar logs do frontend
-docker-compose -f docker-compose.prod.yml logs frontend
+docker compose -f docker-compose.prod.yml logs frontend
 
 # Testar endpoint diretamente
 curl http://192.168.1.100/
@@ -449,10 +449,10 @@ curl http://192.168.1.100/
 journalctl -u docker
 
 # Verificar logs do Nginx
-docker-compose -f docker-compose.prod.yml logs nginx | grep error
+docker compose -f docker-compose.prod.yml logs nginx | grep error
 
 # Verificar logs do Laravel
-docker-compose -f docker-compose.prod.yml exec backend tail -f /var/www/storage/logs/laravel.log
+docker compose -f docker-compose.prod.yml exec backend tail -f /var/www/storage/logs/laravel.log
 ```
 
 ## 🔒 Segurança

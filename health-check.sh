@@ -37,21 +37,21 @@ check_docker() {
 check_containers() {
     echo -e "${BLUE}📋 Checking container status...${NC}"
     
-    if [ ! -f "docker-compose.prod.yml" ]; then
-        echo -e "${RED}❌ docker-compose.prod.yml not found${NC}"
+    if [ ! -f "docker compose.prod.yml" ]; then
+        echo -e "${RED}❌ docker compose.prod.yml not found${NC}"
         HEALTH_STATUS="UNHEALTHY"
-        ISSUES+=("docker-compose.prod.yml not found")
+        ISSUES+=("docker compose.prod.yml not found")
         return
     fi
     
     # Get container status
-    CONTAINERS=$(docker-compose -f docker-compose.prod.yml ps --format "table {{.Name}}\t{{.State}}")
+    CONTAINERS=$(docker compose -f docker compose.prod.yml ps --format "table {{.Name}}\t{{.State}}")
     
     echo -e "${YELLOW}Container Status:${NC}"
     echo "$CONTAINERS"
     
     # Check if all containers are running
-    STOPPED_CONTAINERS=$(docker-compose -f docker-compose.prod.yml ps --format "{{.Name}}\t{{.State}}" | grep -v "Up" | wc -l)
+    STOPPED_CONTAINERS=$(docker compose -f docker compose.prod.yml ps --format "{{.Name}}\t{{.State}}" | grep -v "Up" | wc -l)
     
     if [ "$STOPPED_CONTAINERS" -gt 0 ]; then
         echo -e "${RED}❌ Some containers are not running${NC}"
@@ -66,13 +66,13 @@ check_containers() {
 check_database() {
     echo -e "${BLUE}🗄️  Checking database connectivity...${NC}"
     
-    if docker-compose -f docker-compose.prod.yml ps postgres | grep -q "Up"; then
+    if docker compose -f docker compose.prod.yml ps postgres | grep -q "Up"; then
         # Test database connection
-        if docker-compose -f docker-compose.prod.yml exec -T postgres pg_isready -U labs_user -d labs_app > /dev/null 2>&1; then
+        if docker compose -f docker compose.prod.yml exec -T postgres pg_isready -U labs_user -d labs_app > /dev/null 2>&1; then
             echo -e "${GREEN}✅ Database is accessible${NC}"
             
             # Check database size
-            DB_SIZE=$(docker-compose -f docker-compose.prod.yml exec -T postgres psql -U labs_user -d labs_app -t -c "SELECT pg_size_pretty(pg_database_size('labs_app'));" 2>/dev/null | xargs)
+            DB_SIZE=$(docker compose -f docker compose.prod.yml exec -T postgres psql -U labs_user -d labs_app -t -c "SELECT pg_size_pretty(pg_database_size('labs_app'));" 2>/dev/null | xargs)
             echo -e "${YELLOW}📊 Database size: ${DB_SIZE}${NC}"
         else
             echo -e "${RED}❌ Database is not accessible${NC}"
@@ -169,7 +169,7 @@ check_logs() {
     echo -e "${BLUE}📝 Checking recent logs for errors...${NC}"
     
     # Check for errors in the last 100 lines of each container log
-    for container in $(docker-compose -f docker-compose.prod.yml ps --format "{{.Name}}"); do
+    for container in $(docker compose -f docker compose.prod.yml ps --format "{{.Name}}"); do
         echo -e "${YELLOW}🔍 Checking ${container} logs...${NC}"
         
         ERROR_COUNT=$(docker logs --tail 100 "${container}" 2>&1 | grep -i "error\|exception\|fatal" | wc -l)

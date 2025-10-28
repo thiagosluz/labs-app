@@ -25,16 +25,16 @@ if (!(Test-Path $BackupDir)) {
 # Function to check if containers are running
 function Check-Containers {
     Write-Host "📋 Checking container status..." -ForegroundColor $Blue
-    docker-compose -f docker-compose.prod.yml ps
+    docker compose -f docker compose.prod.yml ps
 }
 
 # Function to backup database
 function Backup-Database {
     Write-Host "💾 Creating database backup..." -ForegroundColor $Blue
     
-    $PostgresStatus = docker-compose -f docker-compose.prod.yml ps postgres
+    $PostgresStatus = docker compose -f docker compose.prod.yml ps postgres
     if ($PostgresStatus -match "Up") {
-        docker-compose -f docker-compose.prod.yml exec -T postgres pg_dump -U labs_user labs_app | Out-File -FilePath "$BackupDir\backup_$Timestamp.sql" -Encoding UTF8
+        docker compose -f docker compose.prod.yml exec -T postgres pg_dump -U labs_user labs_app | Out-File -FilePath "$BackupDir\backup_$Timestamp.sql" -Encoding UTF8
         Write-Host "✅ Database backup created: backup_$Timestamp.sql" -ForegroundColor $Green
     } else {
         Write-Host "⚠️  PostgreSQL container not running, skipping backup" -ForegroundColor $Yellow
@@ -44,7 +44,7 @@ function Backup-Database {
 # Function to stop old containers
 function Stop-Containers {
     Write-Host "🛑 Stopping old containers..." -ForegroundColor $Blue
-    docker-compose -f docker-compose.prod.yml down
+    docker compose -f docker compose.prod.yml down
 }
 
 # Function to build and start containers
@@ -60,7 +60,7 @@ function Start-Containers {
     }
     
     # Build and start
-    docker-compose -f docker-compose.prod.yml up -d --build
+    docker compose -f docker compose.prod.yml up -d --build
     
     Write-Host "✅ Containers started successfully" -ForegroundColor $Green
 }
@@ -74,7 +74,7 @@ function Run-Migrations {
     Start-Sleep -Seconds 10
     
     # Run migrations
-    docker-compose -f docker-compose.prod.yml exec backend php artisan migrate --force
+    docker compose -f docker compose.prod.yml exec backend php artisan migrate --force
     
     Write-Host "✅ Migrations completed" -ForegroundColor $Green
 }
@@ -84,17 +84,17 @@ function Seed-Database {
     Write-Host "🌱 Checking if database needs seeding..." -ForegroundColor $Blue
     
     try {
-        $UserCount = docker-compose -f docker-compose.prod.yml exec -T backend php artisan tinker --execute="echo App\Models\User::count();" 2>$null
+        $UserCount = docker compose -f docker compose.prod.yml exec -T backend php artisan tinker --execute="echo App\Models\User::count();" 2>$null
         if ($UserCount -eq "0") {
             Write-Host "📊 Database is empty, running seeders..." -ForegroundColor $Yellow
-            docker-compose -f docker-compose.prod.yml exec backend php artisan db:seed --force
+            docker compose -f docker compose.prod.yml exec backend php artisan db:seed --force
             Write-Host "✅ Database seeded successfully" -ForegroundColor $Green
         } else {
             Write-Host "✅ Database already has data, skipping seeding" -ForegroundColor $Green
         }
     } catch {
         Write-Host "📊 Database is empty, running seeders..." -ForegroundColor $Yellow
-        docker-compose -f docker-compose.prod.yml exec backend php artisan db:seed --force
+        docker compose -f docker compose.prod.yml exec backend php artisan db:seed --force
         Write-Host "✅ Database seeded successfully" -ForegroundColor $Green
     }
 }
@@ -102,16 +102,16 @@ function Seed-Database {
 # Function to generate application key
 function Generate-AppKey {
     Write-Host "🔑 Generating application key..." -ForegroundColor $Blue
-    docker-compose -f docker-compose.prod.yml exec backend php artisan key:generate --force
+    docker compose -f docker compose.prod.yml exec backend php artisan key:generate --force
     Write-Host "✅ Application key generated" -ForegroundColor $Green
 }
 
 # Function to optimize application
 function Optimize-Application {
     Write-Host "⚡ Optimizing application..." -ForegroundColor $Blue
-    docker-compose -f docker-compose.prod.yml exec backend php artisan config:cache
-    docker-compose -f docker-compose.prod.yml exec backend php artisan route:cache
-    docker-compose -f docker-compose.prod.yml exec backend php artisan view:cache
+    docker compose -f docker compose.prod.yml exec backend php artisan config:cache
+    docker compose -f docker compose.prod.yml exec backend php artisan route:cache
+    docker compose -f docker compose.prod.yml exec backend php artisan view:cache
     Write-Host "✅ Application optimized" -ForegroundColor $Green
 }
 
@@ -164,7 +164,7 @@ function Show-Status {
     Write-Host "=================================" -ForegroundColor $Green
     
     Write-Host "📋 Container Status:" -ForegroundColor $Blue
-    docker-compose -f docker-compose.prod.yml ps
+    docker compose -f docker compose.prod.yml ps
     
     Write-Host "💾 Backup Location: $BackupDir" -ForegroundColor $Blue
     Get-ChildItem $BackupDir
@@ -182,9 +182,9 @@ function Main {
         exit 1
     }
     
-    # Check if docker-compose.prod.yml exists
-    if (!(Test-Path "docker-compose.prod.yml")) {
-        Write-Host "❌ docker-compose.prod.yml not found. Please run this script from the project root." -ForegroundColor $Red
+    # Check if docker compose.prod.yml exists
+    if (!(Test-Path "docker compose.prod.yml")) {
+        Write-Host "❌ docker compose.prod.yml not found. Please run this script from the project root." -ForegroundColor $Red
         exit 1
     }
     

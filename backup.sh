@@ -26,8 +26,8 @@ mkdir -p $BACKUP_DIR
 backup_database() {
     echo -e "${BLUE}🗄️  Backing up database...${NC}"
     
-    if docker-compose -f docker-compose.prod.yml ps postgres | grep -q "Up"; then
-        docker-compose -f docker-compose.prod.yml exec -T postgres pg_dump -U labs_user labs_app > "${BACKUP_DIR}/${BACKUP_NAME}.sql"
+    if docker compose -f docker compose.prod.yml ps postgres | grep -q "Up"; then
+        docker compose -f docker compose.prod.yml exec -T postgres pg_dump -U labs_user labs_app > "${BACKUP_DIR}/${BACKUP_NAME}.sql"
         echo -e "${GREEN}✅ Database backup created: ${BACKUP_NAME}.sql${NC}"
     else
         echo -e "${RED}❌ PostgreSQL container not running${NC}"
@@ -39,7 +39,7 @@ backup_database() {
 backup_storage() {
     echo -e "${BLUE}📁 Backing up storage files...${NC}"
     
-    if docker-compose -f docker-compose.prod.yml ps backend | grep -q "Up"; then
+    if docker compose -f docker compose.prod.yml ps backend | grep -q "Up"; then
         docker cp labs-backend-prod:/var/www/storage "${BACKUP_DIR}/${BACKUP_NAME}_storage"
         echo -e "${GREEN}✅ Storage backup created: ${BACKUP_NAME}_storage${NC}"
     else
@@ -92,9 +92,9 @@ main() {
         exit 1
     fi
     
-    # Check if docker-compose.prod.yml exists
-    if [ ! -f "docker-compose.prod.yml" ]; then
-        echo -e "${RED}❌ docker-compose.prod.yml not found. Please run this script from the project root.${NC}"
+    # Check if docker compose.prod.yml exists
+    if [ ! -f "docker compose.prod.yml" ]; then
+        echo -e "${RED}❌ docker compose.prod.yml not found. Please run this script from the project root.${NC}"
         exit 1
     fi
     
