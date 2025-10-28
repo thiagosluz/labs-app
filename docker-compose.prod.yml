@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: labs-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: labs_app
+      POSTGRES_USER: labs_user
+      POSTGRES_PASSWORD: labs_password_prod_2024
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    networks:
+      - labs-network-prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U labs_user -d labs_app"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Laravel Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: labs-backend-prod
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - backend_storage_prod:/var/www/storage
+      - backend_logs_prod:/var/www/storage/logs
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=labs_app
+      - DB_USERNAME=labs_user
+      - DB_PASSWORD=labs_password_prod_2024
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - labs-network-prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "php", "artisan", "route:list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: labs-frontend-prod
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost/api/v1
+    depends_on:
+      - backend
+    networks:
+      - labs-network-prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: labs-nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/production.conf:/etc/nginx/conf.d/default.conf
+      - backend_storage_prod:/var/www/storage
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - labs-network-prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data_prod:
+    driver: local
+  backend_storage_prod:
+    driver: local
+  backend_logs_prod:
+    driver: local
+
+networks:
+  labs-network-prod:
+    driver: bridge
