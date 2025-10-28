@@ -557,7 +557,7 @@ export default function EquipamentoDetalhePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {equipamento.movimentacoes && (equipamento as any).movimentacoes.length > 0 ? (
+              {equipamento.movimentacoes && equipamento.movimentacoes.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>

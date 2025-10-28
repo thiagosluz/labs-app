@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Search, Edit, Trash2, MapPin, User, Eye, CheckSquare } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, MapPin, User, Eye, CheckSquare, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 

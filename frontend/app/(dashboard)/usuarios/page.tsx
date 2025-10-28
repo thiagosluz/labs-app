@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Search, Edit, Eye, Trash2, UserCheck, UserX } from 'lucide-react';
+import { Plus, Search, Edit, Eye, Trash2, UserCheck, UserX, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 

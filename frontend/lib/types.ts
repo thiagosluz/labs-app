@@ -58,6 +58,7 @@ export interface Equipamento {
   anexos?: string[];
   softwares?: Software[];
   manutencoes?: Manutencao[];
+  movimentacoes?: HistoricoMovimentacao[];
   qr_code_path?: string;
   qr_code_url?: string;
   public_url?: string;
@@ -78,6 +79,22 @@ export interface Equipamento {
   updated_at: string;
 }
 
+export interface HistoricoMovimentacao {
+  id: number;
+  equipamento_id: number;
+  equipamento?: Equipamento;
+  laboratorio_origem_id?: number;
+  laboratorio_origem?: Laboratorio;
+  laboratorio_destino_id?: number;
+  laboratorio_destino?: Laboratorio;
+  data_movimentacao: string;
+  motivo?: string;
+  usuario_id?: number;
+  usuario?: User;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Software {
   id: number;
   nome: string;
@@ -88,7 +105,9 @@ export interface Software {
   data_expiracao?: string;
   descricao?: string;
   equipamentos?: Equipamento[];
+  equipamentos_count?: number;
   laboratorios?: Laboratorio[];
+  laboratorios_equipamentos?: any[];
   created_at: string;
   updated_at: string;
 }
