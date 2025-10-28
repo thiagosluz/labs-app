@@ -102,7 +102,6 @@ optimize_application() {
     echo -e "${BLUE}⚡ Optimizing application...${NC}"
     docker compose -f docker-compose.prod.yml exec backend php artisan config:cache
     docker compose -f docker-compose.prod.yml exec backend php artisan route:cache
-    docker compose -f docker-compose.prod.yml exec backend php artisan view:cache
     echo -e "${GREEN}✅ Application optimized${NC}"
 }
 

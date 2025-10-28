@@ -113,6 +113,12 @@ dir ..\backend\storage\app\public\agent\LabAgent-Setup.exe
 3. Clique em **"Download do Agente"**
 4. O arquivo `LabAgent-Setup.exe` deve baixar
 
+### 4. **Configuração em Produção**
+Quando executar o agente pela primeira vez em um computador do laboratório, ele solicitará:
+1. **URL do servidor** (ex: `http://192.168.1.100`)
+2. **API Key** (fornecida pelo administrador)
+3. **ID do Laboratório** (específico de cada computador)
+
 ---
 
 ## 🐛 Troubleshooting
@@ -180,7 +186,7 @@ Após compilar com sucesso:
 
 1. ✅ Distribua `LabAgent-Setup.exe` para os computadores do laboratório
 2. ✅ Execute o agente em cada máquina
-3. ✅ Configure API Key e ID do laboratório
+3. ✅ Configure URL do servidor, API Key e ID do laboratório
 4. ✅ Monitore sincronizações no painel web
 
 ---

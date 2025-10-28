@@ -295,7 +295,6 @@ docker compose -f docker-compose.prod.yml exec backend php artisan view:clear
 # Otimizar aplicação
 docker compose -f docker-compose.prod.yml exec backend php artisan config:cache
 docker compose -f docker-compose.prod.yml exec backend php artisan route:cache
-docker compose -f docker-compose.prod.yml exec backend php artisan view:cache
 ```
 
 ### Backup e Restore

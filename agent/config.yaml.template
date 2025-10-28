@@ -2,7 +2,8 @@
 # Este arquivo será criado automaticamente na primeira execução
 
 api:
-  # URL da API do Laravel (ajuste conforme seu ambiente)
+  # URL da API do Laravel (será solicitada na primeira execução)
+  # Exemplos: http://192.168.1.100/api/v1/agent, http://servidor-ifg.local/api/v1/agent
   url: http://localhost:8000/api/v1/agent
   
   # API Key (será solicitada na primeira execução)

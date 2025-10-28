@@ -58,6 +58,12 @@ O executável estará em:
 Você poderá baixar pelo painel web em:
 `http://localhost:3000/agentes` → **Download do Agente**
 
+### Configuração em Produção
+Quando executar o agente pela primeira vez, ele solicitará:
+1. **URL do servidor** (ex: `http://192.168.1.100`)
+2. **API Key** (fornecida pelo administrador)
+3. **ID do Laboratório** (específico de cada computador)
+
 ---
 
 ## 🎯 Ordem de Execução

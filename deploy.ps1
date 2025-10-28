@@ -111,7 +111,6 @@ function Optimize-Application {
     Write-Host "⚡ Optimizing application..." -ForegroundColor $Blue
     docker compose -f docker compose.prod.yml exec backend php artisan config:cache
     docker compose -f docker compose.prod.yml exec backend php artisan route:cache
-    docker compose -f docker compose.prod.yml exec backend php artisan view:cache
     Write-Host "✅ Application optimized" -ForegroundColor $Green
 }
 

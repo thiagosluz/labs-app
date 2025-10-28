@@ -51,6 +51,35 @@ def main():
         config.save()
         logger.info("API Key configurada")
     
+    # Verificar URL do servidor
+    if not config.get('api.url') or config.get('api.url') == 'http://localhost:8000/api/v1/agent':
+        logger.warning("URL do servidor não configurada!")
+        print("\n" + "="*60)
+        print("CONFIGURAÇÃO DO SERVIDOR")
+        print("="*60)
+        print("Digite a URL do servidor onde o sistema está instalado.")
+        print("Exemplos:")
+        print("  - http://192.168.1.100")
+        print("  - http://servidor-ifg.local")
+        print("  - http://10.0.0.50")
+        print("="*60)
+        server_url = input("\nDigite a URL do servidor: ").strip()
+        if not server_url:
+            logger.error("URL do servidor não pode ser vazia!")
+            sys.exit(1)
+        
+        # Limpar URL e adicionar /api/v1/agent se necessário
+        server_url = server_url.rstrip('/')
+        if not server_url.startswith('http://') and not server_url.startswith('https://'):
+            server_url = 'http://' + server_url
+        
+        if not server_url.endswith('/api/v1/agent'):
+            server_url = server_url + '/api/v1/agent'
+        
+        config.set('api.url', server_url)
+        config.save()
+        logger.info(f"URL do servidor configurada: {server_url}")
+    
     if not config.get('laboratorio.id'):
         logger.warning("Laboratório não configurado!")
         print("\n" + "="*60)
