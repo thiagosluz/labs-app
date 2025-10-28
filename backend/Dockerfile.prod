@@ -50,6 +50,9 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts
 # Copy application code
 COPY . .
 
+# Ensure .env file exists (copy from .env.example if .env doesn't exist)
+RUN if [ ! -f .env ]; then cp .env.production .env; fi
+
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www \
@@ -100,6 +103,12 @@ RUN echo '#!/bin/bash' > /usr/local/bin/start.sh \
     && echo '    sleep 1' >> /usr/local/bin/start.sh \
     && echo 'done' >> /usr/local/bin/start.sh \
     && echo 'echo "Database is ready!"' >> /usr/local/bin/start.sh \
+    && echo '' >> /usr/local/bin/start.sh \
+    && echo '# Generate application key if not exists' >> /usr/local/bin/start.sh \
+    && echo 'if ! grep -q "APP_KEY=" .env || grep -q "APP_KEY=$" .env; then' >> /usr/local/bin/start.sh \
+    && echo '    echo "Generating application key..."' >> /usr/local/bin/start.sh \
+    && echo '    php artisan key:generate --force' >> /usr/local/bin/start.sh \
+    && echo 'fi' >> /usr/local/bin/start.sh \
     && echo '' >> /usr/local/bin/start.sh \
     && echo '# Cache views' >> /usr/local/bin/start.sh \
     && echo 'echo "Caching views..."' >> /usr/local/bin/start.sh \

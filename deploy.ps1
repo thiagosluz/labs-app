@@ -191,7 +191,6 @@ function Main {
     Backup-Database
     Stop-Containers
     Start-Containers
-    Generate-AppKey
     Run-Migrations
     Seed-Database
     Optimize-Application

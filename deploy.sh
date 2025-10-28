@@ -166,7 +166,6 @@ main() {
     backup_database
     stop_containers
     start_containers
-    generate_app_key
     run_migrations
     seed_database
     optimize_application
