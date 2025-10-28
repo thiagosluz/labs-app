@@ -99,22 +99,30 @@ RUN echo '#!/bin/bash' > /usr/local/bin/start.sh \
     && echo '' >> /usr/local/bin/start.sh \
     && echo '# Wait for database to be ready' >> /usr/local/bin/start.sh \
     && echo 'echo "Waiting for database..."' >> /usr/local/bin/start.sh \
-    && echo 'while ! php artisan migrate:status > /dev/null 2>&1; do' >> /usr/local/bin/start.sh \
+    && echo 'for i in {1..30}; do' >> /usr/local/bin/start.sh \
+    && echo '    if php artisan migrate:status > /dev/null 2>&1; then' >> /usr/local/bin/start.sh \
+    && echo '        echo "Database is ready!"' >> /usr/local/bin/start.sh \
+    && echo '        break' >> /usr/local/bin/start.sh \
+    && echo '    fi' >> /usr/local/bin/start.sh \
+    && echo '    if [ $i -eq 30 ]; then' >> /usr/local/bin/start.sh \
+    && echo '        echo "Warning: Database not ready after 30 seconds, continuing anyway..."' >> /usr/local/bin/start.sh \
+    && echo '        break' >> /usr/local/bin/start.sh \
+    && echo '    fi' >> /usr/local/bin/start.sh \
     && echo '    sleep 1' >> /usr/local/bin/start.sh \
     && echo 'done' >> /usr/local/bin/start.sh \
-    && echo 'echo "Database is ready!"' >> /usr/local/bin/start.sh \
     && echo '' >> /usr/local/bin/start.sh \
     && echo '# Generate application key if not exists' >> /usr/local/bin/start.sh \
     && echo 'if ! grep -q "APP_KEY=" .env || grep -q "APP_KEY=$" .env; then' >> /usr/local/bin/start.sh \
     && echo '    echo "Generating application key..."' >> /usr/local/bin/start.sh \
-    && echo '    php artisan key:generate --force' >> /usr/local/bin/start.sh \
+    && echo '    php artisan key:generate --force || echo "Warning: Could not generate key"' >> /usr/local/bin/start.sh \
     && echo 'fi' >> /usr/local/bin/start.sh \
     && echo '' >> /usr/local/bin/start.sh \
-    && echo '# Cache views' >> /usr/local/bin/start.sh \
-    && echo 'echo "Caching views..."' >> /usr/local/bin/start.sh \
-    && echo 'php artisan view:cache' >> /usr/local/bin/start.sh \
+    && echo '# Try to cache views (optional)' >> /usr/local/bin/start.sh \
+    && echo 'echo "Attempting to cache views..."' >> /usr/local/bin/start.sh \
+    && echo 'php artisan view:cache 2>/dev/null || echo "Views caching skipped (not critical)"' >> /usr/local/bin/start.sh \
     && echo '' >> /usr/local/bin/start.sh \
     && echo '# Start supervisor' >> /usr/local/bin/start.sh \
+    && echo 'echo "Starting services..."' >> /usr/local/bin/start.sh \
     && echo 'exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf' >> /usr/local/bin/start.sh \
     && chmod +x /usr/local/bin/start.sh
 
