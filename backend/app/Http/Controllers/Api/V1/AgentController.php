@@ -109,21 +109,33 @@ class AgentController extends Controller
     public function syncSoftwares(Request $request): JsonResponse
     {
         try {
-            // Log do payload recebido para debug
+            // Verificar se o payload está presente
+            $softwaresInput = $request->input('softwares', []);
+            
+            // Log do payload recebido para debug (apenas primeiro para não poluir logs)
             Log::info('Recebida requisição sync-softwares', [
-                'payload_size' => count($request->input('softwares', [])),
-                'first_software' => $request->input('softwares.0', []),
+                'payload_size' => is_array($softwaresInput) ? count($softwaresInput) : 0,
+                'first_software' => is_array($softwaresInput) && isset($softwaresInput[0]) ? $softwaresInput[0] : null,
             ]);
 
+            // Validar estrutura básica
             $validated = $request->validate([
-                'softwares' => 'required|array',
-                'softwares.*.nome' => 'required|string',
-                'softwares.*.versao' => 'nullable|string',
-                'softwares.*.fabricante' => 'nullable|string',
-                // aceitar string e normalizar para evitar 500 com formatos diferentes
-                'softwares.*.data_instalacao' => 'nullable|string',
-                'softwares.*.chave_licenca' => 'nullable|string',
+                'softwares' => 'required|array|min:1',
+                'softwares.*.nome' => 'required|string|max:255',
+                'softwares.*.versao' => 'nullable|string|max:255',
+                'softwares.*.fabricante' => 'nullable|string|max:255',
+                'softwares.*.data_instalacao' => 'nullable|string|max:50',
+                'softwares.*.chave_licenca' => 'nullable|string|max:255',
             ]);
+            
+            // Garantir que temos um array válido
+            if (!is_array($validated['softwares']) || empty($validated['softwares'])) {
+                return response()->json([
+                    'message' => 'Array de softwares vazio ou inválido',
+                    'software_ids' => [],
+                    'total' => 0,
+                ], 400);
+            }
 
             $softwareIds = [];
             $errors = [];
@@ -144,13 +156,23 @@ class AgentController extends Controller
                         }
                     }
 
+                    // Validar e sanitizar nome (obrigatório)
+                    $nome = trim($softwareData['nome'] ?? '');
+                    if (empty($nome)) {
+                        Log::warning('Software sem nome ignorado', ['index' => $index, 'data' => $softwareData]);
+                        continue;
+                    }
+                    $nome = mb_substr($nome, 0, 255);
+                    
                     // Buscar software existente (incluindo soft deleted)
-                    // Buscar por nome primeiro, depois filtrar por versão se necessário
-                    $query = Software::withTrashed()->where('nome', $softwareData['nome']);
+                    $query = Software::withTrashed()->where('nome', $nome);
                     
                     // Filtrar por versão apenas se fornecida e não vazia
-                    $versao = $softwareData['versao'] ?? null;
-                    if (!empty($versao) && trim($versao) !== '') {
+                    $versao = isset($softwareData['versao']) && !empty(trim($softwareData['versao'])) 
+                        ? mb_substr(trim($softwareData['versao']), 0, 255) 
+                        : null;
+                    
+                    if ($versao !== null && $versao !== '') {
                         $query->where('versao', $versao);
                     } else {
                         $query->whereNull('versao');
@@ -165,30 +187,63 @@ class AgentController extends Controller
                             Log::info("Software restaurado pelo agente: {$software->id}");
                         }
                         
-                        // Atualizar dados se necessário
-                        $software->update([
-                            'fabricante' => $softwareData['fabricante'] ?? $software->fabricante,
-                            'data_instalacao' => $dataInstalacao ?? $software->data_instalacao,
-                            'chave_licenca' => $softwareData['chave_licenca'] ?? $software->chave_licenca,
+                        // Preparar dados para atualização
+                        $dataToUpdate = [
                             'detectado_por_agente' => true,
-                        ]);
+                        ];
+                        
+                        // Atualizar apenas campos fornecidos
+                        if (isset($softwareData['fabricante'])) {
+                            $fabricante = !empty(trim($softwareData['fabricante']))
+                                ? mb_substr(trim($softwareData['fabricante']), 0, 255)
+                                : null;
+                            $dataToUpdate['fabricante'] = $fabricante ?? $software->fabricante;
+                        }
+                        
+                        if ($dataInstalacao !== null) {
+                            $dataToUpdate['data_instalacao'] = $dataInstalacao;
+                        }
+                        
+                        if (isset($softwareData['chave_licenca'])) {
+                            $chaveLicenca = !empty(trim($softwareData['chave_licenca']))
+                                ? mb_substr(trim($softwareData['chave_licenca']), 0, 255)
+                                : null;
+                            $dataToUpdate['chave_licenca'] = $chaveLicenca ?? $software->chave_licenca;
+                        }
+                        
+                        // Atualizar apenas se houver mudanças
+                        $software->update($dataToUpdate);
                     } else {
                         // Criar novo software
-                        // Sanitizar dados antes de criar
-                        $nome = mb_substr(trim($softwareData['nome']), 0, 255);
-                        $versao = !empty($softwareData['versao']) ? mb_substr(trim($softwareData['versao']), 0, 255) : null;
-                        $fabricante = !empty($softwareData['fabricante']) ? mb_substr(trim($softwareData['fabricante']), 0, 255) : null;
-                        $chaveLicenca = !empty($softwareData['chave_licenca']) ? mb_substr(trim($softwareData['chave_licenca']), 0, 255) : null;
+                        // Sanitizar dados antes de criar (já temos nome e versao sanitizados acima)
+                        $fabricante = isset($softwareData['fabricante']) && !empty(trim($softwareData['fabricante']))
+                            ? mb_substr(trim($softwareData['fabricante']), 0, 255)
+                            : null;
+                        $chaveLicenca = isset($softwareData['chave_licenca']) && !empty(trim($softwareData['chave_licenca']))
+                            ? mb_substr(trim($softwareData['chave_licenca']), 0, 255)
+                            : null;
                         
-                        $software = Software::create([
+                        // Criar com apenas campos válidos
+                        $dataToCreate = [
                             'nome' => $nome,
-                            'versao' => $versao,
-                            'fabricante' => $fabricante,
-                            'data_instalacao' => $dataInstalacao,
-                            'chave_licenca' => $chaveLicenca,
                             'detectado_por_agente' => true,
                             'tipo_licenca' => 'proprietario',
-                        ]);
+                        ];
+                        
+                        if ($versao !== null) {
+                            $dataToCreate['versao'] = $versao;
+                        }
+                        if ($fabricante !== null) {
+                            $dataToCreate['fabricante'] = $fabricante;
+                        }
+                        if ($dataInstalacao !== null) {
+                            $dataToCreate['data_instalacao'] = $dataInstalacao;
+                        }
+                        if ($chaveLicenca !== null) {
+                            $dataToCreate['chave_licenca'] = $chaveLicenca;
+                        }
+                        
+                        $software = Software::create($dataToCreate);
                         Log::info("Novo software criado pelo agente: {$software->id}", [
                             'nome' => $nome,
                             'versao' => $versao,
