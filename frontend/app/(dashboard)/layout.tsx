@@ -18,24 +18,17 @@ export default function DashboardLayout({
   useEffect(() => {
     const verifyAuth = async () => {
       try {
-        // Verificar se tem cookie de sessão
-        const hasSession = document.cookie.includes('laravel_session');
+        // Sempre verificar autenticação chamando a API
+        // Não usar document.cookie porque cookies HttpOnly não aparecem lá
+        await checkAuth();
         
-        if (!hasSession && !isAuthenticated && !user) {
+        // Verificar se está autenticado após a verificação
+        const currentUser = useAuthStore.getState().user;
+        const currentAuth = useAuthStore.getState().isAuthenticated;
+        
+        if (!currentUser || !currentAuth) {
           router.push('/login');
           return;
-        }
-
-        // Se não está autenticado mas tem cookie, verificar autenticação
-        if (!isAuthenticated || !user) {
-          await checkAuth();
-          
-          // Se ainda não está autenticado após verificar
-          const currentUser = useAuthStore.getState().user;
-          if (!currentUser) {
-            router.push('/login');
-            return;
-          }
         }
       } catch (error) {
         console.error('Erro ao verificar autenticação:', error);
@@ -46,7 +39,7 @@ export default function DashboardLayout({
     };
 
     verifyAuth();
-  }, [router, isAuthenticated, user, checkAuth]);
+  }, [router, checkAuth]);
 
   if (isChecking) {
     return (

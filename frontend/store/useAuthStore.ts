@@ -61,16 +61,8 @@ export const useAuthStore = create<AuthState>()(
         localStorage.removeItem('auth-storage');
         set({ user: null, isAuthenticated: false });
         
-        // Limpar cookies do navegador ANTES do redirecionamento
-        if (typeof document !== 'undefined') {
-          // Limpar todos os cookies relacionados à sessão
-          document.cookie = 'laravel_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost';
-          document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost';
-          document.cookie = 'laravel_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
-          document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
-        }
-        
-        // Tentar fazer logout no backend (sem bloquear se falhar)
+        // Tentar fazer logout no backend para invalidar a sessão
+        // O backend vai invalidar o cookie HttpOnly automaticamente
         try {
           const xsrfToken = getXsrfToken();
           if (xsrfToken) {
@@ -81,8 +73,13 @@ export const useAuthStore = create<AuthState>()(
             });
           }
         } catch (error) {
-          // Ignorar erros no logout do backend
-          console.log('Erro ao fazer logout no backend (ignorado)', error);
+          // Ignorar erros no logout do backend (sessão pode já estar expirada)
+          console.log('Logout do backend (pode já estar deslogado)', error);
+        }
+        
+        // Limpar XSRF-TOKEN (único cookie não HttpOnly que podemos limpar)
+        if (typeof document !== 'undefined') {
+          document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
         }
       },
 
