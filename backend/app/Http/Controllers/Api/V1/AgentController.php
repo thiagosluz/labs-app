@@ -113,48 +113,77 @@ class AgentController extends Controller
             'softwares.*.nome' => 'required|string',
             'softwares.*.versao' => 'nullable|string',
             'softwares.*.fabricante' => 'nullable|string',
-            'softwares.*.data_instalacao' => 'nullable|date',
+            // aceitar string e normalizar para evitar 500 com formatos diferentes
+            'softwares.*.data_instalacao' => 'nullable|string',
             'softwares.*.chave_licenca' => 'nullable|string',
         ]);
 
         $softwareIds = [];
 
         foreach ($validated['softwares'] as $softwareData) {
-            // Buscar software existente (incluindo soft deleted)
-            $software = Software::withTrashed()
-                ->where('nome', $softwareData['nome'])
-                ->where('versao', $softwareData['versao'] ?? null)
-                ->first();
-            
-            if ($software) {
-                // Se estava soft deleted, restaurar
-                if ($software->trashed()) {
-                    $software->restore();
-                    Log::info("Software restaurado pelo agente: {$software->id}");
+            try {
+                // Normalizar data_instalacao (flexível)
+                $dataInstalacao = null;
+                if (!empty($softwareData['data_instalacao'])) {
+                    try {
+                        $dataInstalacao = \Carbon\Carbon::parse($softwareData['data_instalacao'])->format('Y-m-d');
+                    } catch (\Throwable $e) {
+                        Log::warning('Data de instalação inválida recebida do agente', [
+                            'value' => $softwareData['data_instalacao'],
+                        ]);
+                        $dataInstalacao = null;
+                    }
+                }
+
+                // Buscar software existente (incluindo soft deleted)
+                $software = Software::withTrashed()
+                    ->where('nome', $softwareData['nome'])
+                    ->where(function ($q) use ($softwareData) {
+                        if (array_key_exists('versao', $softwareData) && $softwareData['versao'] !== null) {
+                            $q->where('versao', $softwareData['versao']);
+                        } else {
+                            $q->whereNull('versao');
+                        }
+                    })
+                    ->first();
+                
+                if ($software) {
+                    // Se estava soft deleted, restaurar
+                    if ($software->trashed()) {
+                        $software->restore();
+                        Log::info("Software restaurado pelo agente: {$software->id}");
+                    }
+                    
+                    // Atualizar dados se necessário
+                    $software->update([
+                        'fabricante' => $softwareData['fabricante'] ?? $software->fabricante,
+                        'data_instalacao' => $dataInstalacao ?? $software->data_instalacao,
+                        'chave_licenca' => $softwareData['chave_licenca'] ?? $software->chave_licenca,
+                        'detectado_por_agente' => true,
+                    ]);
+                } else {
+                    // Criar novo software
+                    $software = Software::create([
+                        'nome' => $softwareData['nome'],
+                        'versao' => $softwareData['versao'] ?? null,
+                        'fabricante' => $softwareData['fabricante'] ?? null,
+                        'data_instalacao' => $dataInstalacao,
+                        'chave_licenca' => $softwareData['chave_licenca'] ?? null,
+                        'detectado_por_agente' => true,
+                        'tipo_licenca' => 'proprietario',
+                    ]);
+                    Log::info("Novo software criado pelo agente: {$software->id}");
                 }
                 
-                // Atualizar dados se necessário
-                $software->update([
-                    'fabricante' => $softwareData['fabricante'] ?? $software->fabricante,
-                    'data_instalacao' => $softwareData['data_instalacao'] ?? $software->data_instalacao,
-                    'chave_licenca' => $softwareData['chave_licenca'] ?? $software->chave_licenca,
-                    'detectado_por_agente' => true,
+                $softwareIds[] = $software->id;
+            } catch (\Throwable $e) {
+                Log::error('Falha ao processar software recebido do agente', [
+                    'payload' => $softwareData,
+                    'error' => $e->getMessage(),
                 ]);
-            } else {
-                // Criar novo software
-                $software = Software::create([
-                    'nome' => $softwareData['nome'],
-                    'versao' => $softwareData['versao'] ?? null,
-                    'fabricante' => $softwareData['fabricante'] ?? null,
-                    'data_instalacao' => $softwareData['data_instalacao'] ?? null,
-                    'chave_licenca' => $softwareData['chave_licenca'] ?? null,
-                    'detectado_por_agente' => true,
-                    'tipo_licenca' => 'proprietario',
-                ]);
-                Log::info("Novo software criado pelo agente: {$software->id}");
+                // continuar processando os demais sem derrubar a requisição inteira
+                continue;
             }
-            
-            $softwareIds[] = $software->id;
         }
 
         return response()->json([

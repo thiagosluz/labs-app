@@ -22,10 +22,12 @@ echo [OK] Python encontrado
 echo.
 
 REM Verificar se PyInstaller esta instalado
-pip show pyinstaller >nul 2>&1
+python -m pip show pyinstaller >nul 2>&1
 if %errorlevel% neq 0 (
     echo [INFO] PyInstaller nao encontrado. Instalando...
-    pip install pyinstaller
+    python -m pip install --upgrade pip
+    python -m pip install -r requirements.txt
+    python -m pip install pyinstaller
     echo.
 )
 
@@ -42,8 +44,8 @@ echo.
 echo Isso pode levar alguns minutos...
 echo.
 
-REM Compilar com PyInstaller
-pyinstaller --onefile ^
+REM Compilar com PyInstaller (usar modulo para garantir PATH correto)
+python -m PyInstaller --onefile ^
     --name=LabAgent ^
     --icon=NONE ^
     --hidden-import=wmi ^
