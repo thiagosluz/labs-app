@@ -51,8 +51,25 @@ start_containers() {
     echo -e "${BLUE}🔨 Building and starting containers...${NC}"
     
     # Update environment files with server IP
-    sed -i "s/localhost/${SERVER_IP}/g" backend/.env.production
-    sed -i "s/localhost/${SERVER_IP}/g" frontend/.env.production
+    sed -i "s|APP_URL=http://localhost|APP_URL=http://${SERVER_IP}|g" backend/.env.production
+    sed -i "s|NEXT_PUBLIC_API_URL=http://localhost|NEXT_PUBLIC_API_URL=http://${SERVER_IP}|g" frontend/.env.production
+    sed -i "s|NEXT_PUBLIC_APP_URL=http://localhost|NEXT_PUBLIC_APP_URL=http://${SERVER_IP}|g" frontend/.env.production
+    
+    # Update Sanctum domains (add server IP if not already present)
+    if ! grep -q "${SERVER_IP}" backend/.env.production 2>/dev/null; then
+        sed -i "s|SANCTUM_STATEFUL_DOMAINS=.*|SANCTUM_STATEFUL_DOMAINS=localhost,127.0.0.1,${SERVER_IP}|g" backend/.env.production
+    fi
+    
+    # Remove SESSION_DOMAIN or set to empty for IP-based access
+    sed -i "s|^SESSION_DOMAIN=.*|# SESSION_DOMAIN removed for IP-based access|g" backend/.env.production
+    
+    # Add session configuration for IPs
+    if ! grep -q "SESSION_SECURE_COOKIE" backend/.env.production 2>/dev/null; then
+        echo "" >> backend/.env.production
+        echo "# Session configuration for IP-based access" >> backend/.env.production
+        echo "SESSION_SECURE_COOKIE=false" >> backend/.env.production
+        echo "SESSION_SAME_SITE=lax" >> backend/.env.production
+    fi
     
     # Build and start
     docker compose -f docker-compose.prod.yml up -d --build
