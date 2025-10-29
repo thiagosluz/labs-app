@@ -17,89 +17,121 @@ class AgentController extends Controller
      */
     public function syncEquipamento(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'hostname' => 'required|string',
-            'numero_serie' => 'nullable|string',
-            'fabricante' => 'nullable|string',
-            'modelo' => 'nullable|string',
-            'processador' => 'nullable|string',
-            'memoria_ram' => 'nullable|string',
-            'disco' => 'nullable|string',
-            'ip_local' => 'nullable|string',
-            'mac_address' => 'nullable|string',
-            'gateway' => 'nullable|string',
-            'dns_servers' => 'nullable|array',
-            'laboratorio_id' => 'required|exists:laboratorios,id',
-            'dados_hash' => 'required|string',
+        // Log de entrada do request
+        Log::info('=== INÍCIO sync-equipamento ===', [
+            'method' => $request->method(),
+            'content_type' => $request->header('Content-Type'),
+            'content_length' => $request->header('Content-Length'),
+            'request_size' => strlen($request->getContent()),
         ]);
 
-        // Buscar equipamento existente por número de série ou MAC (incluindo soft deleted)
-        $equipamento = null;
-        
-        // Primeiro, tentar por número de série
-        if (!empty($validated['numero_serie'])) {
-            $equipamento = Equipamento::withTrashed()
-                ->where('numero_serie', $validated['numero_serie'])
-                ->first();
-        }
-        
-        // Se não encontrou por número de série, tentar por MAC
-        if (!$equipamento && !empty($validated['mac_address'])) {
-            $equipamento = Equipamento::withTrashed()
-                ->where('mac_address', $validated['mac_address'])
-                ->first();
-        }
+        try {
+            $validated = $request->validate([
+                'hostname' => 'required|string|max:255',
+                'numero_serie' => 'nullable|string|max:255',
+                'fabricante' => 'nullable|string|max:255',
+                'modelo' => 'nullable|string|max:255',
+                'processador' => 'nullable|string|max:255',
+                'memoria_ram' => 'nullable|string|max:255',
+                'disco' => 'nullable|string|max:255',
+                'ip_local' => 'nullable|string|max:255',
+                'mac_address' => 'nullable|string|max:255',
+                'gateway' => 'nullable|string|max:255',
+                'dns_servers' => 'nullable|array',
+                'laboratorio_id' => 'required|exists:laboratorios,id',
+                'dados_hash' => 'required|string|max:255',
+            ]);
 
-        // Preparar dados
-        $data = [
-            'nome' => $validated['hostname'],
-            'hostname' => $validated['hostname'],
-            'tipo' => 'computador',
-            'fabricante' => $validated['fabricante'],
-            'modelo' => $validated['modelo'],
-            'numero_serie' => $validated['numero_serie'],
-            'processador' => $validated['processador'],
-            'memoria_ram' => $validated['memoria_ram'],
-            'disco' => $validated['disco'],
-            'ip_local' => $validated['ip_local'],
-            'mac_address' => $validated['mac_address'],
-            'gateway' => $validated['gateway'],
-            'dns_servers' => $validated['dns_servers'],
-            'laboratorio_id' => $validated['laboratorio_id'],
-            'estado' => 'em_uso',
-            'gerenciado_por_agente' => true,
-            'agent_version' => $request->agent_key->version ?? '1.0',
-            'ultima_sincronizacao' => now(),
-            'dados_hash' => $validated['dados_hash'],
-        ];
-
-        $wasRecentlyCreated = false;
-        $wasRestored = false;
-
-        if ($equipamento) {
-            // Se estava soft deleted, restaurar
-            if ($equipamento->trashed()) {
-                $equipamento->restore();
-                $wasRestored = true;
-                Log::info("Equipamento restaurado pelo agente: {$equipamento->id}");
+            // Buscar equipamento existente por número de série ou MAC (incluindo soft deleted)
+            $equipamento = null;
+            
+            // Primeiro, tentar por número de série
+            if (!empty($validated['numero_serie'])) {
+                $equipamento = Equipamento::withTrashed()
+                    ->where('numero_serie', $validated['numero_serie'])
+                    ->first();
             }
             
-            // Atualizar apenas se hash mudou ou foi restaurado
-            if ($equipamento->dados_hash !== $validated['dados_hash'] || $wasRestored) {
-                $equipamento->update($data);
-                Log::info("Equipamento atualizado pelo agente: {$equipamento->id}");
+            // Se não encontrou por número de série, tentar por MAC
+            if (!$equipamento && !empty($validated['mac_address'])) {
+                $equipamento = Equipamento::withTrashed()
+                    ->where('mac_address', $validated['mac_address'])
+                    ->first();
             }
-        } else {
-            // Criar novo
-            $equipamento = Equipamento::create($data);
-            $wasRecentlyCreated = true;
-            Log::info("Novo equipamento criado pelo agente: {$equipamento->id}");
-        }
 
-        return response()->json([
-            'equipamento_id' => $equipamento->id,
-            'action' => $wasRecentlyCreated ? 'created' : ($wasRestored ? 'restored' : 'updated'),
-        ]);
+            // Sanitização básica
+            $hostname = mb_substr(trim($validated['hostname']), 0, 255);
+            $data = [
+                'nome' => $hostname,
+                'hostname' => $hostname,
+                'tipo' => 'computador',
+                'fabricante' => isset($validated['fabricante']) ? mb_substr((string) $validated['fabricante'], 0, 255) : null,
+                'modelo' => isset($validated['modelo']) ? mb_substr((string) $validated['modelo'], 0, 255) : null,
+                'numero_serie' => isset($validated['numero_serie']) ? mb_substr((string) $validated['numero_serie'], 0, 255) : null,
+                'processador' => isset($validated['processador']) ? mb_substr((string) $validated['processador'], 0, 255) : null,
+                'memoria_ram' => isset($validated['memoria_ram']) ? mb_substr((string) $validated['memoria_ram'], 0, 255) : null,
+                'disco' => isset($validated['disco']) ? mb_substr((string) $validated['disco'], 0, 255) : null,
+                'ip_local' => isset($validated['ip_local']) ? mb_substr((string) $validated['ip_local'], 0, 255) : null,
+                'mac_address' => isset($validated['mac_address']) ? mb_substr((string) $validated['mac_address'], 0, 255) : null,
+                'gateway' => isset($validated['gateway']) ? mb_substr((string) $validated['gateway'], 0, 255) : null,
+                'dns_servers' => $validated['dns_servers'] ?? null,
+                'laboratorio_id' => $validated['laboratorio_id'],
+                'estado' => 'em_uso',
+                'gerenciado_por_agente' => true,
+                'agent_version' => $request->agent_key->version ?? '1.0',
+                'ultima_sincronizacao' => now(),
+                'dados_hash' => mb_substr($validated['dados_hash'], 0, 255),
+            ];
+
+            $wasRecentlyCreated = false;
+            $wasRestored = false;
+
+            if ($equipamento) {
+                // Se estava soft deleted, restaurar
+                if ($equipamento->trashed()) {
+                    $equipamento->restore();
+                    $wasRestored = true;
+                    Log::info("Equipamento restaurado pelo agente: {$equipamento->id}");
+                }
+                
+                // Atualizar apenas se hash mudou ou foi restaurado
+                if ($equipamento->dados_hash !== $data['dados_hash'] || $wasRestored) {
+                    $equipamento->update($data);
+                    Log::info("Equipamento atualizado pelo agente: {$equipamento->id}");
+                }
+            } else {
+                // Criar novo
+                $equipamento = Equipamento::create($data);
+                $wasRecentlyCreated = true;
+                Log::info("Novo equipamento criado pelo agente: {$equipamento->id}");
+            }
+
+            return response()->json([
+                'equipamento_id' => $equipamento->id,
+                'action' => $wasRecentlyCreated ? 'created' : ($wasRestored ? 'restored' : 'updated'),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Erro de validação em sync-equipamento', [
+                'errors' => $e->errors(),
+                'input' => $request->all(),
+            ]);
+            return response()->json([
+                'message' => 'Erro de validação',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('Erro fatal em sync-equipamento', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all(),
+            ]);
+            return response()->json([
+                'message' => 'Erro interno do servidor',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
