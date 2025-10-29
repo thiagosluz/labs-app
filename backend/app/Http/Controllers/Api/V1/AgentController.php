@@ -108,6 +108,15 @@ class AgentController extends Controller
      */
     public function syncSoftwares(Request $request): JsonResponse
     {
+        // Log imediato no início do método
+        Log::info('=== INÍCIO sync-softwares ===', [
+            'method' => $request->method(),
+            'content_type' => $request->header('Content-Type'),
+            'content_length' => $request->header('Content-Length'),
+            'has_json' => $request->has('softwares'),
+            'request_size' => strlen($request->getContent()),
+        ]);
+        
         try {
             // Verificar se o payload está presente
             $softwaresInput = $request->input('softwares', []);
@@ -115,7 +124,8 @@ class AgentController extends Controller
             // Log do payload recebido para debug (apenas primeiro para não poluir logs)
             Log::info('Recebida requisição sync-softwares', [
                 'payload_size' => is_array($softwaresInput) ? count($softwaresInput) : 0,
-                'first_software' => is_array($softwaresInput) && isset($softwaresInput[0]) ? $softwaresInput[0] : null,
+                'payload_type' => gettype($softwaresInput),
+                'first_software' => is_array($softwaresInput) && isset($softwaresInput[0]) ? array_slice($softwaresInput[0], 0, 3) : null,
             ]);
 
             // Validar estrutura básica
