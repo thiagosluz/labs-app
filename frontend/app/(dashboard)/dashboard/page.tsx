@@ -23,8 +23,14 @@ export default function DashboardPage() {
     try {
       const response = await api.get('/dashboard');
       setStats(response.data);
-    } catch (error) {
-      toast.error('Erro ao carregar dashboard');
+    } catch (error: any) {
+      console.error('Erro ao carregar dashboard:', error);
+      if (error.response?.status === 401) {
+        toast.error('Sessão expirada. Faça login novamente.');
+        // Não redirecionar aqui, deixar o layout fazer
+      } else {
+        toast.error(error.response?.data?.message || 'Erro ao carregar dashboard');
+      }
     } finally {
       setIsLoading(false);
     }

@@ -50,10 +50,23 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Não redirecionar automaticamente - deixar os componentes decidirem
+      // Isso evita loops de redirecionamento
+      const isLoginPage = typeof window !== 'undefined' && window.location.pathname === '/login';
+      
+      // Limpar estado de autenticação
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+      localStorage.removeItem('auth-storage');
+      
+      // Só redirecionar se não estiver na página de login
+      if (!isLoginPage && typeof window !== 'undefined') {
+        // Pequeno delay para evitar loops
+        setTimeout(() => {
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+        }, 100);
       }
     }
     return Promise.reject(error);
