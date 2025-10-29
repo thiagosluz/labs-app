@@ -89,17 +89,39 @@ class LaravelAPIClient:
         """
         return self._request('POST', 'sync-equipamento', data, data.get('hostname'))
     
-    def sync_softwares(self, softwares):
+    def sync_softwares(self, softwares, batch_size=25):
         """
-        Sincroniza lista de softwares
+        Sincroniza lista de softwares em lotes
         
         Args:
             softwares: Lista de dicionários com dados dos softwares
+            batch_size: Tamanho de cada lote (padrão: 25)
         
         Returns:
-            dict: Resposta da API com software_ids e total
+            dict: Resposta agregada com software_ids e total
         """
-        return self._request('POST', 'sync-softwares', {'softwares': softwares})
+        if not softwares:
+            return {'software_ids': [], 'total': 0, 'errors_count': 0}
+        
+        total_batches = (len(softwares) + batch_size - 1) // batch_size
+        all_software_ids = []
+        total_errors = 0
+        
+        for i in range(0, len(softwares), batch_size):
+            batch = softwares[i:i + batch_size]
+            batch_num = (i // batch_size) + 1
+            
+            print(f"Processando lote {batch_num}/{total_batches} ({len(batch)} softwares)...")
+            
+            response = self._request('POST', 'sync-softwares', {'softwares': batch})
+            all_software_ids.extend(response.get('software_ids', []))
+            total_errors += response.get('errors_count', 0)
+        
+        return {
+            'software_ids': all_software_ids,
+            'total': len(all_software_ids),
+            'errors_count': total_errors
+        }
     
     def sync_equipamento_softwares(self, equipamento_id, software_ids):
         """

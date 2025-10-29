@@ -156,10 +156,12 @@ def main():
                 
                 # 2. Sincronizar softwares
                 if sw_data:
-                    logger.info(f"Sincronizando {len(sw_data)} softwares...")
-                    sw_response = client.sync_softwares(sw_data)
+                    total_softwares = len(sw_data)
+                    batch_size = config.get('sync.batch_size', 25)
+                    logger.info(f"Sincronizando {total_softwares} softwares em lotes (tamanho: {batch_size})...")
+                    sw_response = client.sync_softwares(sw_data, batch_size=batch_size)
                     software_ids = sw_response['software_ids']
-                    logger.info(f"✅ Softwares processados: {sw_response['total']}")
+                    logger.info(f"✅ Softwares processados: {sw_response['total']} (erros: {sw_response.get('errors_count', 0)})")
                     
                     # 3. Sincronizar relacionamento
                     logger.info("Sincronizando relacionamento equipamento-softwares...")

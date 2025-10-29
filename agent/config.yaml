@@ -5,6 +5,8 @@ coleta:
   intervalo_segundos: 300
 laboratorio:
   id: 1
+sync:
+  batch_size: 25  # Tamanho de cada lote de softwares
 logging:
   arquivo: agent.log
   level: INFO
