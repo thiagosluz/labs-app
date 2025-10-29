@@ -71,6 +71,16 @@ start_containers() {
         echo "SESSION_SAME_SITE=lax" >> backend/.env.production
     fi
     
+    # Add FRONTEND_URL if not exists (for QR codes and public URLs)
+    if ! grep -q "FRONTEND_URL" backend/.env.production 2>/dev/null; then
+        echo "" >> backend/.env.production
+        echo "# Frontend URL (for public links and QR codes)" >> backend/.env.production
+        echo "FRONTEND_URL=http://${SERVER_IP}" >> backend/.env.production
+    else
+        # Update existing FRONTEND_URL
+        sed -i "s|FRONTEND_URL=.*|FRONTEND_URL=http://${SERVER_IP}|g" backend/.env.production
+    fi
+    
     # Build and start
     docker compose -f docker-compose.prod.yml up -d --build
     
@@ -87,6 +97,10 @@ run_migrations() {
     
     # Run migrations
     docker compose -f docker-compose.prod.yml exec backend php artisan migrate --force
+    
+    # Create storage symlink
+    echo -e "${BLUE}🔗 Creating storage symlink...${NC}"
+    docker compose -f docker-compose.prod.yml exec backend php artisan storage:link || echo -e "${YELLOW}⚠️  Storage link may already exist${NC}"
     
     echo -e "${GREEN}✅ Migrations completed${NC}"
 }

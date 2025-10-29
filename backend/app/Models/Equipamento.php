@@ -99,7 +99,12 @@ class Equipamento extends Model
             return null;
         }
         
-        return Storage::disk('public')->url($this->qr_code_path);
+        // Obter URL base do storage
+        $baseUrl = rtrim(config('app.url', 'http://localhost'), '/');
+        $storagePath = ltrim($this->qr_code_path, '/');
+        
+        // Retornar URL sem duplo slash
+        return $baseUrl . '/storage/' . $storagePath;
     }
 
     /**
@@ -107,7 +112,8 @@ class Equipamento extends Model
      */
     public function getPublicUrlAttribute(): string
     {
-        return config('app.frontend_url', 'http://localhost:3000') . '/equipamento/' . $this->id . '/public';
+        $frontendUrl = rtrim(config('app.frontend_url', config('app.url', 'http://localhost')), '/');
+        return $frontendUrl . '/equipamento/' . $this->id . '/public';
     }
 }
 

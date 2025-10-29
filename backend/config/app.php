@@ -55,15 +55,27 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
-    |--------------------------------------------------------------------------
-    | Application Timezone
-    |--------------------------------------------------------------------------
-    |
-    | Here you may specify the default timezone for your application, which
-    | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
-    |
-    */
+     |--------------------------------------------------------------------------
+     | Frontend URL
+     |--------------------------------------------------------------------------
+     |
+     | This URL is used for generating public links (QR codes, etc.)
+     | Should match the frontend application URL
+     |
+     */
+
+    'frontend_url' => env('FRONTEND_URL', env('APP_URL', 'http://localhost')),
+
+    /*
+     |--------------------------------------------------------------------------
+     | Application Timezone
+     |--------------------------------------------------------------------------
+     |
+     | Here you may specify the default timezone for your application, which
+     | will be used by the PHP date and date-time functions. The timezone
+     | is set to "UTC" by default as it is suitable for most use cases.
+     |
+     */
 
     'timezone' => 'UTC',
 

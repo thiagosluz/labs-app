@@ -53,10 +53,20 @@ function Start-Containers {
     
     # Update environment files with server IP
     if (Test-Path "backend\.env.production") {
-        (Get-Content "backend\.env.production") -replace "localhost", $ServerIP | Set-Content "backend\.env.production"
+        (Get-Content "backend\.env.production") -replace "APP_URL=http://localhost", "APP_URL=http://$ServerIP" | Set-Content "backend\.env.production"
+        (Get-Content "backend\.env.production") -replace "NEXT_PUBLIC_API_URL=http://localhost", "NEXT_PUBLIC_API_URL=http://$ServerIP" | Set-Content "backend\.env.production"
+        
+        # Add or update FRONTEND_URL
+        $EnvContent = Get-Content "backend\.env.production" -Raw
+        if ($EnvContent -notmatch "FRONTEND_URL") {
+            Add-Content "backend\.env.production" "`n# Frontend URL (for public links and QR codes)`nFRONTEND_URL=http://$ServerIP"
+        } else {
+            (Get-Content "backend\.env.production") -replace "FRONTEND_URL=.*", "FRONTEND_URL=http://$ServerIP" | Set-Content "backend\.env.production"
+        }
     }
     if (Test-Path "frontend\.env.production") {
-        (Get-Content "frontend\.env.production") -replace "localhost", $ServerIP | Set-Content "frontend\.env.production"
+        (Get-Content "frontend\.env.production") -replace "NEXT_PUBLIC_API_URL=http://localhost", "NEXT_PUBLIC_API_URL=http://$ServerIP" | Set-Content "frontend\.env.production"
+        (Get-Content "frontend\.env.production") -replace "NEXT_PUBLIC_APP_URL=http://localhost", "NEXT_PUBLIC_APP_URL=http://$ServerIP" | Set-Content "frontend\.env.production"
     }
     
     # Build and start
@@ -75,6 +85,13 @@ function Run-Migrations {
     
     # Run migrations
     docker compose -f docker compose.prod.yml exec backend php artisan migrate --force
+    
+    # Create storage symlink
+    Write-Host "🔗 Creating storage symlink..." -ForegroundColor $Blue
+    docker compose -f docker compose.prod.yml exec backend php artisan storage:link 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "⚠️  Storage link may already exist" -ForegroundColor $Yellow
+    }
     
     Write-Host "✅ Migrations completed" -ForegroundColor $Green
 }

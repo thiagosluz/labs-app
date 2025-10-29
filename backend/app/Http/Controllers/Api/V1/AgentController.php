@@ -108,88 +108,142 @@ class AgentController extends Controller
      */
     public function syncSoftwares(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'softwares' => 'required|array',
-            'softwares.*.nome' => 'required|string',
-            'softwares.*.versao' => 'nullable|string',
-            'softwares.*.fabricante' => 'nullable|string',
-            // aceitar string e normalizar para evitar 500 com formatos diferentes
-            'softwares.*.data_instalacao' => 'nullable|string',
-            'softwares.*.chave_licenca' => 'nullable|string',
-        ]);
+        try {
+            // Log do payload recebido para debug
+            Log::info('Recebida requisição sync-softwares', [
+                'payload_size' => count($request->input('softwares', [])),
+                'first_software' => $request->input('softwares.0', []),
+            ]);
 
-        $softwareIds = [];
+            $validated = $request->validate([
+                'softwares' => 'required|array',
+                'softwares.*.nome' => 'required|string',
+                'softwares.*.versao' => 'nullable|string',
+                'softwares.*.fabricante' => 'nullable|string',
+                // aceitar string e normalizar para evitar 500 com formatos diferentes
+                'softwares.*.data_instalacao' => 'nullable|string',
+                'softwares.*.chave_licenca' => 'nullable|string',
+            ]);
 
-        foreach ($validated['softwares'] as $softwareData) {
-            try {
-                // Normalizar data_instalacao (flexível)
-                $dataInstalacao = null;
-                if (!empty($softwareData['data_instalacao'])) {
-                    try {
-                        $dataInstalacao = \Carbon\Carbon::parse($softwareData['data_instalacao'])->format('Y-m-d');
-                    } catch (\Throwable $e) {
-                        Log::warning('Data de instalação inválida recebida do agente', [
-                            'value' => $softwareData['data_instalacao'],
-                        ]);
-                        $dataInstalacao = null;
-                    }
-                }
+            $softwareIds = [];
+            $errors = [];
 
-                // Buscar software existente (incluindo soft deleted)
-                $software = Software::withTrashed()
-                    ->where('nome', $softwareData['nome'])
-                    ->where(function ($q) use ($softwareData) {
-                        if (array_key_exists('versao', $softwareData) && $softwareData['versao'] !== null) {
-                            $q->where('versao', $softwareData['versao']);
-                        } else {
-                            $q->whereNull('versao');
+            foreach ($validated['softwares'] as $index => $softwareData) {
+                try {
+                    // Normalizar data_instalacao (flexível)
+                    $dataInstalacao = null;
+                    if (!empty($softwareData['data_instalacao'])) {
+                        try {
+                            $dataInstalacao = \Carbon\Carbon::parse($softwareData['data_instalacao'])->format('Y-m-d');
+                        } catch (\Throwable $e) {
+                            Log::warning('Data de instalação inválida recebida do agente', [
+                                'value' => $softwareData['data_instalacao'],
+                                'index' => $index,
+                            ]);
+                            $dataInstalacao = null;
                         }
-                    })
-                    ->first();
-                
-                if ($software) {
-                    // Se estava soft deleted, restaurar
-                    if ($software->trashed()) {
-                        $software->restore();
-                        Log::info("Software restaurado pelo agente: {$software->id}");
+                    }
+
+                    // Buscar software existente (incluindo soft deleted)
+                    // Buscar por nome primeiro, depois filtrar por versão se necessário
+                    $query = Software::withTrashed()->where('nome', $softwareData['nome']);
+                    
+                    // Filtrar por versão apenas se fornecida e não vazia
+                    $versao = $softwareData['versao'] ?? null;
+                    if (!empty($versao) && trim($versao) !== '') {
+                        $query->where('versao', $versao);
+                    } else {
+                        $query->whereNull('versao');
                     }
                     
-                    // Atualizar dados se necessário
-                    $software->update([
-                        'fabricante' => $softwareData['fabricante'] ?? $software->fabricante,
-                        'data_instalacao' => $dataInstalacao ?? $software->data_instalacao,
-                        'chave_licenca' => $softwareData['chave_licenca'] ?? $software->chave_licenca,
-                        'detectado_por_agente' => true,
+                    $software = $query->first();
+                    
+                    if ($software) {
+                        // Se estava soft deleted, restaurar
+                        if ($software->trashed()) {
+                            $software->restore();
+                            Log::info("Software restaurado pelo agente: {$software->id}");
+                        }
+                        
+                        // Atualizar dados se necessário
+                        $software->update([
+                            'fabricante' => $softwareData['fabricante'] ?? $software->fabricante,
+                            'data_instalacao' => $dataInstalacao ?? $software->data_instalacao,
+                            'chave_licenca' => $softwareData['chave_licenca'] ?? $software->chave_licenca,
+                            'detectado_por_agente' => true,
+                        ]);
+                    } else {
+                        // Criar novo software
+                        // Sanitizar dados antes de criar
+                        $nome = mb_substr(trim($softwareData['nome']), 0, 255);
+                        $versao = !empty($softwareData['versao']) ? mb_substr(trim($softwareData['versao']), 0, 255) : null;
+                        $fabricante = !empty($softwareData['fabricante']) ? mb_substr(trim($softwareData['fabricante']), 0, 255) : null;
+                        $chaveLicenca = !empty($softwareData['chave_licenca']) ? mb_substr(trim($softwareData['chave_licenca']), 0, 255) : null;
+                        
+                        $software = Software::create([
+                            'nome' => $nome,
+                            'versao' => $versao,
+                            'fabricante' => $fabricante,
+                            'data_instalacao' => $dataInstalacao,
+                            'chave_licenca' => $chaveLicenca,
+                            'detectado_por_agente' => true,
+                            'tipo_licenca' => 'proprietario',
+                        ]);
+                        Log::info("Novo software criado pelo agente: {$software->id}", [
+                            'nome' => $nome,
+                            'versao' => $versao,
+                        ]);
+                    }
+                    
+                    $softwareIds[] = $software->id;
+                } catch (\Throwable $e) {
+                    $errors[] = [
+                        'index' => $index,
+                        'nome' => $softwareData['nome'] ?? 'desconhecido',
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ];
+                    Log::error('Falha ao processar software recebido do agente', [
+                        'index' => $index,
+                        'payload' => $softwareData,
+                        'error' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                        'trace' => $e->getTraceAsString(),
                     ]);
-                } else {
-                    // Criar novo software
-                    $software = Software::create([
-                        'nome' => $softwareData['nome'],
-                        'versao' => $softwareData['versao'] ?? null,
-                        'fabricante' => $softwareData['fabricante'] ?? null,
-                        'data_instalacao' => $dataInstalacao,
-                        'chave_licenca' => $softwareData['chave_licenca'] ?? null,
-                        'detectado_por_agente' => true,
-                        'tipo_licenca' => 'proprietario',
-                    ]);
-                    Log::info("Novo software criado pelo agente: {$software->id}");
+                    // continuar processando os demais sem derrubar a requisição inteira
+                    continue;
                 }
-                
-                $softwareIds[] = $software->id;
-            } catch (\Throwable $e) {
-                Log::error('Falha ao processar software recebido do agente', [
-                    'payload' => $softwareData,
-                    'error' => $e->getMessage(),
-                ]);
-                // continuar processando os demais sem derrubar a requisição inteira
-                continue;
             }
-        }
 
-        return response()->json([
-            'software_ids' => $softwareIds,
-            'total' => count($softwareIds),
-        ]);
+            return response()->json([
+                'software_ids' => $softwareIds,
+                'total' => count($softwareIds),
+                'errors_count' => count($errors),
+                'errors' => $errors,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Erro de validação em sync-softwares', [
+                'errors' => $e->errors(),
+                'input' => $request->all(),
+            ]);
+            return response()->json([
+                'message' => 'Erro de validação',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('Erro fatal em sync-softwares', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all(),
+            ]);
+            return response()->json([
+                'message' => 'Erro interno do servidor',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

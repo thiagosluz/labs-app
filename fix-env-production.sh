@@ -34,6 +34,18 @@ if ! grep -q "SESSION_SECURE_COOKIE" backend/.env.production; then
     echo "SESSION_SAME_SITE=lax" >> backend/.env.production
 fi
 
+# Atualizar FRONTEND_URL
+sed -i "s|FRONTEND_URL=.*|FRONTEND_URL=http://${SERVER_IP}|g" backend/.env.production
+if ! grep -q "FRONTEND_URL" backend/.env.production; then
+    echo "" >> backend/.env.production
+    echo "# Frontend URL (for public links and QR codes)" >> backend/.env.production
+    echo "FRONTEND_URL=http://${SERVER_IP}" >> backend/.env.production
+fi
+
+# Criar storage symlink se não existir
+echo "🔗 Verificando storage symlink..."
+docker compose -f docker-compose.prod.yml exec backend php artisan storage:link || echo "⚠️  Storage link já existe"
+
 # Limpar cache do Laravel
 echo "🔄 Limpando cache do Laravel..."
 docker compose -f docker-compose.prod.yml exec backend php artisan config:clear
@@ -43,6 +55,11 @@ docker compose -f docker-compose.prod.yml exec backend php artisan config:cache
 echo "✅ .env.production corrigido!"
 echo "🔄 Reiniciando containers..."
 docker compose -f docker-compose.prod.yml restart backend
+
+echo ""
+echo "📋 Próximos passos:"
+echo "1. Regenerar QR codes para usar nova URL:"
+echo "   docker compose -f docker-compose.prod.yml exec backend php artisan equipamentos:generate-qrcodes --force"
 
 echo "✅ Correção concluída!"
 echo ""
