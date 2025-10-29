@@ -119,6 +119,21 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
 
 // Rotas do Agente (autenticação via API Key)
 Route::prefix('v1/agent')->middleware('agent.auth')->group(function () {
+    // Endpoint de teste (sem validação pesada)
+    Route::get('/test', function (Request $request) {
+        \Illuminate\Support\Facades\Log::info('TEST ENDPOINT - Recebida requisição', [
+            'headers' => $request->headers->all(),
+            'method' => $request->method(),
+            'has_agent_key' => $request->has('agent_key'),
+        ]);
+        $agentKey = $request->input('agent_key');
+        return response()->json([
+            'status' => 'ok',
+            'message' => 'Agent endpoint is working',
+            'agent_key_id' => $agentKey ? $agentKey->id : null,
+        ]);
+    });
+    
     Route::post('/sync-equipamento', [AgentController::class, 'syncEquipamento']);
     Route::post('/sync-softwares', [AgentController::class, 'syncSoftwares']);
     Route::post('/sync-equipamento-softwares', [AgentController::class, 'syncEquipamentoSoftwares']);

@@ -22,5 +22,19 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Log todas as exceções não capturadas
+        $exceptions->respond(function (\Throwable $e, $request) {
+            \Illuminate\Support\Facades\Log::error('Exception não capturada', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'url' => $request->fullUrl(),
+                'method' => $request->method(),
+                'headers' => $request->headers->all(),
+            ]);
+            
+            // Retornar resposta padrão
+            return null; // Laravel vai tratar normalmente
+        });
     })->create();
