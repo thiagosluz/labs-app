@@ -24,10 +24,21 @@ export default function LoginPage() {
       await login(email, password);
       toast.success('Login realizado com sucesso!');
       
-      // Pequeno delay para garantir que o localStorage foi atualizado
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Aguardar um pouco mais para garantir que o cookie foi definido
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Usar window.location para forçar redirecionamento
+      // Verificar autenticação antes de redirecionar
+      const checkAuth = useAuthStore.getState().checkAuth;
+      try {
+        await checkAuth();
+      } catch (authError) {
+        console.error('Erro ao verificar autenticação:', authError);
+      }
+      
+      // Aguardar mais um pouco para garantir que tudo foi processado
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Usar window.location para forçar redirecionamento completo (recarrega página)
       window.location.href = '/dashboard';
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao fazer login');

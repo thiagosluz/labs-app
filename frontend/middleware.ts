@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  // Verificar se tem session do Laravel (cookie laravel-session)
-  const laravelSession = request.cookies.get('laravel-session')?.value;
+  // Verificar se tem session do Laravel (cookie laravel_session)
+  const laravelSession = request.cookies.get('laravel_session')?.value;
   const isLoginPage = request.nextUrl.pathname === '/login';
   const isPublicPage = request.nextUrl.pathname === '/' || isLoginPage;
   
