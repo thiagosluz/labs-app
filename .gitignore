@@ -2,6 +2,21 @@
 node_modules/
 vendor/
 
+# Python / Agent
+agent/venv/
+agent/__pycache__/
+agent/**/__pycache__/
+agent/*.pyc
+agent/*.pyo
+agent/*.pyd
+agent/.Python
+agent/*.so
+agent/*.egg
+agent/*.egg-info/
+agent/dist/
+agent/build/
+agent/.pytest_cache/
+
 # Laravel
 backend/.env
 backend/storage/*.key

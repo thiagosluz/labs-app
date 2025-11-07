@@ -1,18 +1,41 @@
 """
-Coletor de softwares instalados no Windows via Registry
+Coletor de softwares instalados (Windows e Linux)
 """
-import winreg
+import platform
+import sys
 from datetime import datetime
 
 
 def collect_software():
     """
-    Coleta lista de softwares instalados no Windows através do Registry
+    Coleta lista de softwares instalados (Windows ou Linux)
     
     Returns:
         list: Lista de dicionários com informações dos softwares
     """
+    try:
+        system_os = platform.system()
+        
+        if system_os == "Windows":
+            return _collect_windows_software()
+        elif system_os == "Linux":
+            return _collect_linux_software()
+        else:
+            return []
+            
+    except Exception as e:
+        print(f"Erro ao coletar softwares: {e}")
+        return []
+
+
+def _collect_windows_software():
+    """Coleta softwares instalados no Windows via Registry"""
     softwares = []
+    
+    try:
+        import winreg  # Importação condicional - só aqui!
+    except ImportError:
+        return []
     
     # Caminhos do Registry onde ficam os softwares instalados
     keys = [
@@ -31,10 +54,12 @@ def collect_software():
                     
                     nome = get_value(subkey, "DisplayName")
                     if not nome:
+                        winreg.CloseKey(subkey)
                         continue
                     
                     # Filtrar entradas do sistema/updates do Windows
                     if is_system_entry(nome):
+                        winreg.CloseKey(subkey)
                         continue
                     
                     softwares.append({
@@ -65,9 +90,83 @@ def collect_software():
     return unique_softwares
 
 
+def _collect_linux_software():
+    """Coleta softwares instalados no Linux via dpkg/rpm"""
+    import subprocess
+    
+    softwares = []
+    
+    # Tentar dpkg (Debian/Ubuntu)
+    try:
+        result = subprocess.run(
+            ['dpkg-query', '-W', '-f=${Package}\t${Version}\t${Maintainer}\n'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            for line in result.stdout.strip().split('\n'):
+                if not line:
+                    continue
+                parts = line.split('\t')
+                if len(parts) >= 2:
+                    nome = parts[0]
+                    versao = parts[1]
+                    fabricante = parts[2] if len(parts) > 2 else None
+                    
+                    # Filtrar pacotes do sistema
+                    if is_system_package(nome):
+                        continue
+                    
+                    softwares.append({
+                        'nome': nome,
+                        'versao': versao,
+                        'fabricante': fabricante,
+                        'data_instalacao': None,  # dpkg não fornece data de instalação facilmente
+                    })
+            return softwares
+    except:
+        pass
+    
+    # Tentar rpm (RedHat/CentOS/Fedora)
+    try:
+        result = subprocess.run(
+            ['rpm', '-qa', '--queryformat', '%{NAME}\t%{VERSION}\t%{VENDOR}\n'],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0:
+            for line in result.stdout.strip().split('\n'):
+                if not line:
+                    continue
+                parts = line.split('\t')
+                if len(parts) >= 2:
+                    nome = parts[0]
+                    versao = parts[1]
+                    fabricante = parts[2] if len(parts) > 2 else None
+                    
+                    # Filtrar pacotes do sistema
+                    if is_system_package(nome):
+                        continue
+                    
+                    softwares.append({
+                        'nome': nome,
+                        'versao': versao,
+                        'fabricante': fabricante,
+                        'data_instalacao': None,
+                    })
+    except:
+        pass
+    
+    return softwares
+
+
 def get_value(key, name):
     """
-    Obtém valor de uma chave do Registry
+    Obtém valor de uma chave do Registry (Windows)
     
     Args:
         key: Chave do Registry
@@ -77,6 +176,7 @@ def get_value(key, name):
         str: Valor ou None
     """
     try:
+        import winreg  # Importação condicional
         value = winreg.QueryValueEx(key, name)[0]
         return value if value else None
     except:
@@ -103,7 +203,7 @@ def parse_install_date(date_str):
 
 def is_system_entry(name):
     """
-    Verifica se é uma entrada do sistema que deve ser ignorada
+    Verifica se é uma entrada do sistema que deve ser ignorada (Windows)
     
     Args:
         name: Nome do software
@@ -111,6 +211,9 @@ def is_system_entry(name):
     Returns:
         bool: True se for entrada do sistema
     """
+    if not name:
+        return True
+    
     ignore_patterns = [
         'Update for',
         'Hotfix for',
@@ -125,3 +228,39 @@ def is_system_entry(name):
     
     return False
 
+
+def is_system_package(name):
+    """
+    Verifica se é um pacote do sistema que deve ser ignorado (Linux)
+    
+    Args:
+        name: Nome do pacote
+    
+    Returns:
+        bool: True se for pacote do sistema
+    """
+    if not name:
+        return True
+    
+    # Filtrar pacotes de bibliotecas e dependências do sistema
+    system_prefixes = [
+        'lib',
+        'python3-',
+        'python-',
+        'perl-',
+        'ruby-',
+        'node-',
+        'gcc-',
+        'g++',
+        'binutils',
+        'coreutils',
+        'base-files',
+        'dpkg',
+        'rpm',
+    ]
+    
+    for prefix in system_prefixes:
+        if name.startswith(prefix):
+            return True
+    
+    return False
