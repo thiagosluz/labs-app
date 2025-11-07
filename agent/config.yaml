@@ -6,7 +6,7 @@ api:
   url: http://localhost:8000/api/v1/agent
   
   # API Key
-  key: 73888ec93152f1d1330a05b4ba851ff2bac49c7d7397dda2d383191d99f9f61d
+  key: f9e02eb21d27055d7b613c14d29546157ece28f258985753aa31cdbc077fe2da
 
 laboratorio:
   # ID do laboratório deste computador

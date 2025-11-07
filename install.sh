@@ -11,7 +11,7 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # Verificar se Docker Compose está instalado
-if ! command -v docker-compose &> /dev/null; then
+if ! command -v docker &> /dev/null || ! docker compose version &> /dev/null; then
     echo "❌ Docker Compose não encontrado. Por favor, instale o Docker Compose primeiro."
     exit 1
 fi
@@ -36,7 +36,7 @@ fi
 
 echo ""
 echo "🐳 Iniciando containers Docker..."
-docker-compose up -d
+docker compose up -d
 
 echo ""
 echo "⏳ Aguardando containers iniciarem..."
@@ -44,19 +44,19 @@ sleep 10
 
 echo ""
 echo "📦 Instalando dependências do backend..."
-docker-compose exec -T backend composer install
+docker compose exec -T backend composer install
 
 echo ""
 echo "🔑 Gerando chave da aplicação Laravel..."
-docker-compose exec -T backend php artisan key:generate
+docker compose exec -T backend php artisan key:generate
 
 echo ""
 echo "🗄️  Executando migrations e seeders..."
-docker-compose exec -T backend php artisan migrate --seed
+docker compose exec -T backend php artisan migrate --seed
 
 echo ""
 echo "📦 Instalando dependências do frontend..."
-docker-compose exec -T frontend npm install
+docker compose exec -T frontend npm install
 
 echo ""
 echo "=================================================================="

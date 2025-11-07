@@ -308,7 +308,7 @@ Todos os módulos seguem o mesmo padrão de design:
 
 ### **1. Iniciar o Sistema:**
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### **2. Acessar:**

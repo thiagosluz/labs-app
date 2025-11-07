@@ -17,8 +17,32 @@ export function getCookie(name: string): string | undefined {
 
 /**
  * Função para obter o token XSRF do cookie
+ * Tenta diferentes variações do nome do cookie
  */
 export function getXsrfToken(): string | undefined {
-  return getCookie('XSRF-TOKEN');
+  if (typeof document === 'undefined') return undefined;
+  
+  // Tentar XSRF-TOKEN (padrão do Laravel)
+  let token = getCookie('XSRF-TOKEN');
+  if (token) return token;
+  
+  // Tentar xsrf-token (lowercase)
+  token = getCookie('xsrf-token');
+  if (token) return token;
+  
+  // Tentar ler diretamente do cookie string (case-insensitive)
+  const cookies = document.cookie.split('; ');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.split('=');
+    if (name && name.toLowerCase() === 'xsrf-token' && value) {
+      try {
+        return decodeURIComponent(value);
+      } catch {
+        return value;
+      }
+    }
+  }
+  
+  return undefined;
 }
 

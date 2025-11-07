@@ -66,12 +66,12 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 
 3. **Inicie os containers**
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 4. **Execute as migrations e seeders** (primeira vez)
 ```bash
-docker-compose exec backend php artisan migrate --seed
+docker compose exec backend php artisan migrate --seed
 ```
 
 5. **Acesse o sistema**
@@ -111,25 +111,25 @@ Após executar os seeders, você terá acesso a estes usuários:
 
 ```bash
 # Executar migrations
-docker-compose exec backend php artisan migrate
+docker compose exec backend php artisan migrate
 
 # Executar seeders
-docker-compose exec backend php artisan db:seed
+docker compose exec backend php artisan db:seed
 
 # Limpar cache
-docker-compose exec backend php artisan cache:clear
+docker compose exec backend php artisan cache:clear
 
 # Gerar chave da aplicação
-docker-compose exec backend php artisan key:generate
+docker compose exec backend php artisan key:generate
 
 # Criar um novo controller
-docker-compose exec backend php artisan make:controller NomeController
+docker compose exec backend php artisan make:controller NomeController
 
 # Criar uma nova migration
-docker-compose exec backend php artisan make:migration criar_tabela
+docker compose exec backend php artisan make:migration criar_tabela
 
 # Testes
-docker-compose exec backend php artisan test
+docker compose exec backend php artisan test
 ```
 
 ### Frontend (Next.js)
@@ -177,7 +177,7 @@ labs-app/
 │   │   └── types.ts         # TypeScript types
 │   └── store/               # Zustand stores
 │
-├── docker-compose.yml       # Configuração Docker
+├── docker compose.yml       # Configuração Docker
 └── README.md
 ```
 
@@ -255,7 +255,7 @@ GET    /api/v1/relatorios/manutencoes/:inicio/:fim
 
 ```bash
 # Backend - PHPUnit
-docker-compose exec backend php artisan test
+docker compose exec backend php artisan test
 
 # Frontend - Jest (se configurado)
 cd frontend && npm test

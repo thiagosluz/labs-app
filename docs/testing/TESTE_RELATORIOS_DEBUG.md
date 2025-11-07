@@ -63,7 +63,7 @@ Agora os métodos `equipamentosPdf` e `manutencoesPdf` logam:
 Execute o comando:
 
 ```powershell
-docker-compose exec backend tail -n 50 storage/logs/laravel.log
+docker compose exec backend tail -n 50 storage/logs/laravel.log
 ```
 
 **Procure por:**
@@ -94,14 +94,14 @@ Se `total_equipamentos` for **12**, o problema está na view Blade ou na geraç�
 
 **Verificar:**
 ```powershell
-docker-compose exec backend php artisan tinker --execute="echo 'Total: ' . \App\Models\Equipamento::count();"
+docker compose exec backend php artisan tinker --execute="echo 'Total: ' . \App\Models\Equipamento::count();"
 ```
 
 **Esperado:** `Total: 12`
 
 Se for 0, execute:
 ```powershell
-docker-compose exec backend php artisan migrate:fresh --seed
+docker compose exec backend php artisan migrate:fresh --seed
 ```
 
 ### **Causa 3: View Blade com Erro**
@@ -110,7 +110,7 @@ docker-compose exec backend php artisan migrate:fresh --seed
 
 **Teste direto:**
 ```powershell
-docker-compose exec backend php artisan tinker --execute="
+docker compose exec backend php artisan tinker --execute="
 \$equipamentos = \App\Models\Equipamento::with(['laboratorio'])->get();
 \$pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('relatorios.equipamentos', [
     'equipamentos' => \$equipamentos,
@@ -127,10 +127,10 @@ Se der erro, a view Blade tem problemas.
 
 **Limpar tudo:**
 ```powershell
-docker-compose exec backend php artisan config:clear
-docker-compose exec backend php artisan cache:clear
-docker-compose exec backend php artisan view:clear
-docker-compose exec backend php artisan route:clear
+docker compose exec backend php artisan config:clear
+docker compose exec backend php artisan cache:clear
+docker compose exec backend php artisan view:clear
+docker compose exec backend php artisan route:clear
 ```
 
 ---
@@ -141,7 +141,7 @@ Execute na ordem:
 
 - [ ] **1. Confirmar dados existem**
   ```powershell
-  docker-compose exec backend php artisan tinker --execute="echo 'Equipamentos: ' . \App\Models\Equipamento::count() . PHP_EOL; echo 'Manutenções: ' . \App\Models\Manutencao::count() . PHP_EOL;"
+  docker compose exec backend php artisan tinker --execute="echo 'Equipamentos: ' . \App\Models\Equipamento::count() . PHP_EOL; echo 'Manutenções: ' . \App\Models\Manutencao::count() . PHP_EOL;"
   ```
   **Esperado:** `Equipamentos: 12` e `Manutenções: 3`
 
@@ -153,7 +153,7 @@ Execute na ordem:
 
 - [ ] **3. Verificar logs**
   ```powershell
-  docker-compose exec backend tail -n 20 storage/logs/laravel.log
+  docker compose exec backend tail -n 20 storage/logs/laravel.log
   ```
   **Procurar:** `"total_equipamentos": 12`
 
@@ -166,12 +166,12 @@ Execute na ordem:
 
 - [ ] **5. Limpar cache**
   ```powershell
-  docker-compose exec backend php artisan optimize:clear
+  docker compose exec backend php artisan optimize:clear
   ```
 
 - [ ] **6. Reiniciar containers**
   ```powershell
-  docker-compose restart backend frontend
+  docker compose restart backend frontend
   ```
 
 ---
@@ -242,7 +242,7 @@ Isso permite ver o HTML/PDF diretamente no navegador e identificar se:
 2. **Screenshot do PDF gerado** (mesmo que vazio)
 3. **Últimas 20 linhas do log:**
    ```powershell
-   docker-compose exec backend tail -n 20 storage/logs/laravel.log
+   docker compose exec backend tail -n 20 storage/logs/laravel.log
    ```
 4. **Parâmetros da requisição** (F12 > Network > ver query params)
 

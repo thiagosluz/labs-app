@@ -22,26 +22,27 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         try {
           // Passo 1: Obter CSRF cookie do Sanctum
-          await sanctumApi.get('/sanctum/csrf-cookie');
+          const csrfResponse = await sanctumApi.get('/sanctum/csrf-cookie');
           
           // Pequeno delay para garantir que o cookie foi estabelecido
           await new Promise(resolve => setTimeout(resolve, 200));
           
-          // Passo 2: Obter o token XSRF do cookie
-          const xsrfToken = getXsrfToken();
+          // Passo 2: Obter o token XSRF do cookie (se disponível)
+          // Nota: O Axios pode não conseguir ler cookies de outros domínios,
+          // então tentamos ler manualmente como fallback
+          let xsrfToken = getXsrfToken();
           
-          if (!xsrfToken) {
-            throw new Error('XSRF token não encontrado. Verifique se os cookies estão habilitados.');
-          }
+          // Se não encontrou o token, o Axios tentará ler automaticamente
+          // ou o navegador enviará o cookie automaticamente com withCredentials: true
           
-          // Passo 3: Fazer login com o token XSRF no header
+          // Passo 3: Fazer login
           const response = await api.post('/login', 
             { email, password },
-            {
+            xsrfToken ? {
               headers: {
                 'X-XSRF-TOKEN': xsrfToken
               }
-            }
+            } : {}
           );
           
           const { user } = response.data;
@@ -64,8 +65,7 @@ export const useAuthStore = create<AuthState>()(
         // Limpar cookies do navegador ANTES do redirecionamento
         if (typeof document !== 'undefined') {
           // Limpar todos os cookies relacionados à sessão
-          document.cookie = 'laravel_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost';
-          document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost';
+          // Não especificar domain para funcionar em qualquer domínio/IP
           document.cookie = 'laravel_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
           document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
         }

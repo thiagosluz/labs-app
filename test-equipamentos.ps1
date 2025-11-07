@@ -33,7 +33,7 @@ foreach ($container in $requiredContainers) {
 if (-not $allRunning) {
     Write-Host ""
     Write-Host "❌ Alguns containers não estão rodando!" -ForegroundColor Red
-    Write-Host "   Execute: docker-compose up -d" -ForegroundColor Yellow
+    Write-Host "   Execute: docker compose up -d" -ForegroundColor Yellow
     exit 1
 }
 
@@ -117,7 +117,7 @@ try {
 }
 catch {
     Write-Host "   ❌ Frontend não está respondendo!" -ForegroundColor Red
-    Write-Host "   Execute: docker-compose restart frontend" -ForegroundColor Yellow
+    Write-Host "   Execute: docker compose restart frontend" -ForegroundColor Yellow
 }
 
 Write-Host ""
@@ -130,13 +130,13 @@ Write-Host "📂 TESTE 3: Storage Link" -ForegroundColor Yellow
 Write-Host "-----------------------------------------------------" -ForegroundColor Gray
 Write-Host ""
 
-$storageCheck = docker-compose exec -T backend test -L public/storage 2>$null
+$storageCheck = docker compose exec -T backend test -L public/storage 2>$null
 if ($LASTEXITCODE -eq 0) {
     Write-Host "   ✅ Storage link está configurado" -ForegroundColor Green
 } else {
     Write-Host "   ⚠️  Storage link não encontrado" -ForegroundColor Yellow
     Write-Host "   Criando link..." -ForegroundColor White
-    docker-compose exec backend php artisan storage:link
+    docker compose exec backend php artisan storage:link
     Write-Host "   ✅ Storage link criado!" -ForegroundColor Green
 }
 
@@ -150,7 +150,7 @@ Write-Host "🗄️  TESTE 4: Database" -ForegroundColor Yellow
 Write-Host "-----------------------------------------------------" -ForegroundColor Gray
 Write-Host ""
 
-$dbCheck = docker-compose exec -T backend php artisan db:show 2>$null
+$dbCheck = docker compose exec -T backend php artisan db:show 2>$null
 if ($LASTEXITCODE -eq 0) {
     Write-Host "   ✅ Conexão com PostgreSQL OK" -ForegroundColor Green
 } else {

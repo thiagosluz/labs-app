@@ -11,7 +11,7 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
 }
 
 # Verificar se Docker Compose está instalado
-if (-not (Get-Command docker-compose -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command docker compose -ErrorAction SilentlyContinue)) {
     Write-Host "❌ Docker Compose não encontrado. Por favor, instale o Docker Compose primeiro." -ForegroundColor Red
     exit 1
 }
@@ -36,7 +36,7 @@ if (-not (Test-Path "frontend/.env.local")) {
 
 Write-Host ""
 Write-Host "🐳 Iniciando containers Docker..." -ForegroundColor Yellow
-docker-compose up -d
+docker compose up -d
 
 Write-Host ""
 Write-Host "⏳ Aguardando containers iniciarem..." -ForegroundColor Yellow
@@ -44,19 +44,19 @@ Start-Sleep -Seconds 10
 
 Write-Host ""
 Write-Host "📦 Instalando dependências do backend..." -ForegroundColor Yellow
-docker-compose exec backend composer install
+docker compose exec backend composer install
 
 Write-Host ""
 Write-Host "🔑 Gerando chave da aplicação Laravel..." -ForegroundColor Yellow
-docker-compose exec backend php artisan key:generate
+docker compose exec backend php artisan key:generate
 
 Write-Host ""
 Write-Host "🗄️  Executando migrations e seeders..." -ForegroundColor Yellow
-docker-compose exec backend php artisan migrate --seed
+docker compose exec backend php artisan migrate --seed
 
 Write-Host ""
 Write-Host "📦 Instalando dependências do frontend..." -ForegroundColor Yellow
-docker-compose exec frontend npm install
+docker compose exec frontend npm install
 
 Write-Host ""
 Write-Host "==================================================================" -ForegroundColor Green

@@ -278,7 +278,7 @@ Resultado: Mostra "Ilimitadas" no card de licenciamento
 ### Erro: "Failed to load resource: 500"
 **Solução:** Verifique logs do Laravel:
 ```bash
-docker-compose logs backend
+docker compose logs backend
 ```
 
 ### Grid não aparece corretamente
@@ -290,7 +290,7 @@ docker-compose logs backend
 ### Frontend não carrega mudanças
 **Solução:** Reinicie o container:
 ```bash
-docker-compose restart frontend
+docker compose restart frontend
 ```
 
 ---

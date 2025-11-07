@@ -137,7 +137,7 @@ Tamanho esperado: **25-35 MB**
 ### Erro ao copiar para backend
 **Solução:** Verifique se o Docker está rodando:
 ```batch
-docker-compose ps
+docker compose ps
 ```
 
 Se o diretório não existir, crie manualmente:

@@ -213,7 +213,7 @@ Adiciona softwares novos
 
 2. **Gerar API Key de teste:**
    ```bash
-   docker-compose exec backend php artisan agent:generate-key
+   docker compose exec backend php artisan agent:generate-key
    ```
 
 ### AGENTE PYTHON
@@ -280,7 +280,7 @@ Para distribuir o agente como `.exe`:
 
 4. **Criar link simbólico (se necessário):**
    ```bash
-   docker-compose exec backend php artisan storage:link
+   docker compose exec backend php artisan storage:link
    ```
 
 ---
@@ -291,7 +291,7 @@ Para distribuir o agente como `.exe`:
 
 ```bash
 # Gerar API Key
-docker-compose exec backend php artisan agent:generate-key --name="Teste" --lab=1
+docker compose exec backend php artisan agent:generate-key --name="Teste" --lab=1
 
 # Testar endpoint (substitua API_KEY)
 curl -X POST http://localhost:8000/api/v1/agent/sync-equipamento \
@@ -315,7 +315,7 @@ python agent.py
 
 ```bash
 # Backend
-docker-compose exec backend tail -f storage/logs/laravel.log
+docker compose exec backend tail -f storage/logs/laravel.log
 
 # Agente
 type agent\agent.log

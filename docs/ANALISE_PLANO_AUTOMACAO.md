@@ -107,7 +107,7 @@ pyinstaller --onefile --name=LabAgent agent/agent.py
 
 **Alternativa:**
 ```bash
-docker-compose exec backend php artisan agent:generate-key --name="Teste"
+docker compose exec backend php artisan agent:generate-key --name="Teste"
 ```
 
 **Impacto:** Nenhum. Comando Artisan é mais prático.

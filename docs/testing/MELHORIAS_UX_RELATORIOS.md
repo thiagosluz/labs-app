@@ -312,7 +312,7 @@ import { Loader2 } from 'lucide-react';
 7. ✅ Botões voltam ao normal
 
 ### **Teste 2: Erro no Backend**
-1. Desligar backend: `docker-compose stop backend`
+1. Desligar backend: `docker compose stop backend`
 2. Clicar em "Gerar PDF"
 3. ✅ Toast "Gerando..." aparece
 4. ✅ Botão mostra spinner

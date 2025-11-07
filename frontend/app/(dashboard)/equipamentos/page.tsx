@@ -21,6 +21,7 @@ import {
 import { Plus, Search, Edit, Eye, ChevronLeft, ChevronRight, Loader2, Trash2, Package, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { getXsrfToken } from '@/lib/csrf';
 
 export default function EquipamentosPage() {
   const [equipamentos, setEquipamentos] = useState<Equipamento[]>([]);
@@ -93,7 +94,15 @@ export default function EquipamentosPage() {
   const handleBulkDelete = async () => {
     setIsDeletingBulk(true);
     try {
-      const response = await api.post('/equipamentos/bulk-destroy', { ids: selectedIds });
+      const xsrfToken = getXsrfToken();
+      const response = await api.post('/equipamentos/bulk-destroy', 
+        { ids: selectedIds },
+        {
+          headers: {
+            ...(xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {}),
+          },
+        }
+      );
       toast.success(response.data.message);
       setSelectedIds([]);
       setShowBulkDeleteDialog(false);
@@ -108,10 +117,14 @@ export default function EquipamentosPage() {
   const handlePrintBulkLabels = async () => {
     setIsPrintingBulk(true);
     try {
+      const xsrfToken = getXsrfToken();
       const response = await api.post('/equipamentos/etiquetas/bulk', {
         ids: selectedIds,
       }, {
         responseType: 'blob',
+        headers: {
+          ...(xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {}),
+        },
       });
       
       const url = window.URL.createObjectURL(new Blob([response.data]));

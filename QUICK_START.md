@@ -15,7 +15,7 @@ git clone <url-do-repositorio>
 cd labs-app
 
 # Inicie os containers
-docker-compose up -d
+docker compose up -d
 
 # Aguarde alguns segundos para os containers iniciarem
 ```
@@ -24,7 +24,7 @@ docker-compose up -d
 
 ```bash
 # Execute as migrations e seeders
-docker-compose exec backend php artisan migrate --seed
+docker compose exec backend php artisan migrate --seed
 
 # A mensagem de sucesso mostrará os usuários criados
 ```
@@ -62,28 +62,28 @@ Use uma das credenciais de teste:
 
 ### Ver logs dos containers
 ```bash
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ### Reiniciar os containers
 ```bash
-docker-compose restart
+docker compose restart
 ```
 
 ### Parar os containers
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ### Resetar o banco de dados
 ```bash
-docker-compose exec backend php artisan migrate:fresh --seed
+docker compose exec backend php artisan migrate:fresh --seed
 ```
 
 ## ❓ Problemas Comuns
 
 ### Porta 3000 ou 8000 já em uso
-Edite o `docker-compose.yml` e altere as portas:
+Edite o `docker compose.yml` e altere as portas:
 ```yaml
 ports:
   - "3001:3000"  # Frontend
@@ -92,11 +92,11 @@ ports:
 
 ### Erro de permissão no Laravel
 ```bash
-docker-compose exec backend chmod -R 775 storage bootstrap/cache
+docker compose exec backend chmod -R 775 storage bootstrap/cache
 ```
 
 ### Erro de conexão com o banco
-Aguarde alguns segundos após o `docker-compose up` para o PostgreSQL inicializar completamente.
+Aguarde alguns segundos após o `docker compose up` para o PostgreSQL inicializar completamente.
 
 ## 📊 Dados de Exemplo
 

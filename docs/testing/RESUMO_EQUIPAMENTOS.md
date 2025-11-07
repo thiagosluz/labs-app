@@ -231,20 +231,20 @@ O sistema já tem dados de exemplo (seeds):
 ### **Erro: Foto não aparece**
 ```bash
 # Solução: Criar link simbólico do storage
-docker-compose exec backend php artisan storage:link
+docker compose exec backend php artisan storage:link
 ```
 
 ### **Erro: 419 (CSRF token mismatch)**
 ```bash
 # Solução: Limpar cache e reiniciar
-docker-compose exec backend php artisan config:clear
-docker-compose restart backend frontend
+docker compose exec backend php artisan config:clear
+docker compose restart backend frontend
 ```
 
 ### **Erro: Validação falha**
 ```bash
 # Solução: Verificar logs do Laravel
-docker-compose logs backend
+docker compose logs backend
 ```
 
 ---

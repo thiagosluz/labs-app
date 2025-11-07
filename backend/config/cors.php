@@ -19,7 +19,19 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:3000', 'http://localhost', 'http://127.0.0.1:3000', 'http://127.0.0.1'],
+    'allowed_origins' => array_filter(array_unique(array_merge(
+        explode(',', env('CORS_ALLOWED_ORIGINS', '')),
+        [
+            'http://localhost:3000',
+            'http://localhost',
+            'http://127.0.0.1:3000',
+            'http://127.0.0.1',
+        ],
+        // Adicionar FRONTEND_URL se configurada
+        env('FRONTEND_URL') ? [env('FRONTEND_URL')] : [],
+        // Adicionar APP_URL se configurada (para produção)
+        env('APP_ENV') === 'production' && env('APP_URL') ? [env('APP_URL')] : [],
+    ))),
 
     'allowed_origins_patterns' => [],
 
