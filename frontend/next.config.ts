@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
     '@radix-ui/react-focus-scope',
     '@radix-ui/react-focus-guards',
   ],
+  output: 'standalone',
 };
 
 export default nextConfig;
